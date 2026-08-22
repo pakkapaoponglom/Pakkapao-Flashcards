@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>pakkapaoponglom - Chinese Flashcards</title>
+    <title>Pakkapao - Chinese Learning App</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -22,7 +22,7 @@
                         'puffer-dark': '#1E293B'
                     },
                     fontFamily: {
-                        'chinese': ['"PingFang SC"', '"Microsoft YaHei"', '"SimSun"', '"Songti SC"', 'serif']
+                        'chinese': ['"PingFang SC"', '"Microsoft YaHei"', '"SimSun"', 'serif']
                     }
                 }
             }
@@ -35,10 +35,6 @@
             background-color: #F0F9FF;
             background-image: radial-gradient(#BAE6FD 1px, transparent 1px);
             background-size: 24px 24px;
-        }
-
-        .font-chinese {
-            font-family: "PingFang SC", "Microsoft YaHei", "SimSun", "Songti SC", serif;
         }
 
         .card-perspective {
@@ -62,246 +58,398 @@
         .card-back {
             transform: rotateY(180deg);
         }
-
-        .cloud-pattern {
-            background-image: url("data:image/svg+xml,%3Csvg width='80' height='40' viewBox='0 0 80 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10 25 C 10 15, 20 10, 30 15 C 35 5, 50 5, 55 15 C 65 10, 75 18, 70 28 C 75 35, 60 38, 50 35 C 40 39, 20 38, 10 25 Z' fill='none' stroke='%23bae6fd' stroke-width='2' opacity='0.4'/%3E%3C/svg%3E");
-        }
     </style>
 </head>
-<body class="min-h-screen text-slate-700 flex flex-col justify-between cloud-pattern">
+<body class="min-h-screen text-slate-700 flex flex-col justify-between">
 
     <!-- Header -->
     <header class="bg-white/80 backdrop-blur-md border-b border-sky-100 sticky top-0 z-40 px-4 py-3 shadow-sm">
-        <div class="max-w-4xl mx-auto flex items-center justify-between">
-            <div class="flex items-center space-x-3 cursor-pointer" onclick="setMode('random')">
-                <div class="w-12 h-12 rounded-full bg-sky-100 border-2 border-sky-300 flex items-center justify-center text-2xl shadow-inner">
+        <div class="max-w-md mx-auto flex items-center justify-between">
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="showScreen('screen-home')">
+                <div class="w-10 h-10 rounded-full bg-sky-100 border-2 border-sky-300 flex items-center justify-center text-xl shadow-inner">
                     🐡
                 </div>
                 <div>
-                    <h1 class="font-bold text-xl text-sky-800 leading-tight">pakkapaoponglom</h1>
-                    <p class="text-xs text-pink-500 font-medium">Cute & Fun Chinese Flashcards</p>
+                    <h1 class="font-bold text-lg text-sky-800 leading-tight">Pakkapao</h1>
+                    <p class="text-[10px] text-pink-500 font-medium">Chinese Flashcards & Dictation</p>
                 </div>
             </div>
-
-            <button onclick="toggleStatsModal()" class="px-3 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-600 rounded-xl text-xs font-semibold flex items-center gap-1.5 border border-sky-200">
-                <i class="fa-solid fa-chart-line text-pink-400"></i>
-                <span>สถิติ</span>
+            <button onclick="showScreen('screen-home')" class="text-xs text-sky-600 font-bold bg-sky-50 px-3 py-1.5 rounded-xl border border-sky-200">
+                <i class="fa-solid fa-house mr-1"></i> หน้าแรก
             </button>
         </div>
     </header>
 
-    <!-- Main Content -->
-    <main class="max-w-md w-full mx-auto p-4 flex-1 flex flex-col justify-center my-2">
+    <!-- App Container -->
+    <main class="max-w-md w-full mx-auto p-4 flex-1 flex flex-col justify-center">
 
-        <!-- Mascot Banner -->
-        <div class="bg-white border-2 border-sky-200 rounded-2xl p-3 shadow-sm mb-4 flex items-center gap-3 relative">
-            <div class="w-10 h-10 shrink-0 bg-sky-100 rounded-full flex items-center justify-center border border-sky-300 text-xl">
-                🐡
-            </div>
-            <div class="text-xs text-sky-900 font-medium">
-                <p id="mascot-dialog">"สวัสดีครับ! วันนี้มาฝึกทบทวนภาษาจีนกับน้องปักเป้ากันนะ!"</p>
-            </div>
-        </div>
-
-        <!-- Mode Tabs -->
-        <div class="bg-sky-100/80 p-1 rounded-2xl flex text-xs font-semibold text-sky-700 mb-4 shadow-inner">
-            <button id="mode-random-btn" onclick="setMode('random')" class="flex-1 py-2 rounded-xl transition text-center shadow-sm bg-white text-puffer-pink font-bold">
-                <i class="fa-solid fa-shuffle mr-1"></i> สุ่มคำ
-            </button>
-            <button id="mode-category-btn" onclick="setMode('category')" class="flex-1 py-2 rounded-xl transition text-center">
-                <i class="fa-solid fa-list mr-1"></i> หมวดหมู่
-            </button>
-            <button id="mode-review-btn" onclick="setMode('smartReview')" class="flex-1 py-2 rounded-xl transition text-center">
-                <i class="fa-solid fa-brain mr-1"></i> ปักเป้าช่วยจำ
-            </button>
-        </div>
-
-        <!-- Category Panel -->
-        <div id="category-panel" class="hidden bg-white p-4 rounded-2xl border border-sky-200 shadow-sm mb-4 space-y-3">
-            <label class="text-xs font-bold text-sky-800 block">เลือกหมวดหมู่คำศัพท์:</label>
-            <select id="category-select" onchange="changeCategory()" class="w-full text-xs p-2.5 bg-sky-50 border border-sky-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-400 text-sky-900">
-                <option value="all">ทั้งหมด (All Words)</option>
-                <option value="hsk1">HSK 1 - พื้นฐาน</option>
-                <option value="food">หมวดอาหาร & เครื่องดื่ม</option>
-                <option value="daily">ชีวิตประจำวัน</option>
-            </select>
-        </div>
-
-        <!-- Flashcard Flip Area -->
-        <div class="relative w-full h-80 card-perspective select-none">
-            <div id="flashcard" onclick="flipCard()" class="card-inner w-full h-full relative cursor-pointer shadow-lg rounded-3xl border-4 border-white">
+        <!-- 1. Screen Home -->
+        <div id="screen-home" class="space-y-4">
+            <div class="bg-white p-6 rounded-3xl border-2 border-sky-100 shadow-md text-center space-y-4">
+                <div class="text-5xl my-2">🐡</div>
+                <h2 class="text-xl font-bold text-sky-900">เลือกโหมดการเรียนรู้</h2>
                 
-                <!-- Front Side -->
-                <div class="card-front absolute inset-0 rounded-3xl bg-white p-6 flex flex-col justify-between items-center text-center border-2 border-sky-100">
-                    <div class="w-full flex justify-between items-center text-xs text-sky-400">
-                        <span id="card-category-badge" class="bg-sky-100 text-sky-600 px-2.5 py-1 rounded-full font-semibold">HSK 1</span>
-                        <span id="card-counter" class="font-mono font-medium">1 / 9</span>
-                    </div>
-
-                    <div class="my-auto">
-                        <h2 id="card-hanzi" class="text-6xl md:text-7xl font-chinese text-slate-900 tracking-normal mb-2 font-bold">你好</h2>
-                        <p class="text-xs text-sky-400 flex items-center justify-center gap-1 opacity-80">
-                            <i class="fa-solid fa-hand-pointer"></i> แตะเพื่อพลิกดูความหมาย
-                        </p>
-                    </div>
-
-                    <div class="w-full flex justify-end">
-                        <button onclick="event.stopPropagation(); speakWord();" class="w-10 h-10 rounded-full bg-pink-50 text-pink-500 flex items-center justify-center border border-pink-200 shadow-sm">
-                            <i class="fa-solid fa-volume-high"></i>
-                        </button>
-                    </div>
+                <div class="grid grid-cols-1 gap-3 pt-2">
+                    <button onclick="startModeSetup('flashcards')" class="p-4 bg-sky-50 hover:bg-sky-100 border-2 border-sky-200 rounded-2xl flex items-center justify-between text-sky-800 font-bold shadow-sm transition">
+                        <span class="flex items-center gap-3"><i class="fa-solid fa-layer-group text-2xl text-sky-500"></i> Flashcards</span>
+                        <i class="fa-solid fa-chevron-right text-sky-400"></i>
+                    </button>
+                    
+                    <button onclick="startModeSetup('dictation')" class="p-4 bg-pink-50 hover:bg-pink-100 border-2 border-pink-200 rounded-2xl flex items-center justify-between text-pink-800 font-bold shadow-sm transition">
+                        <span class="flex items-center gap-3"><i class="fa-solid fa-pen-headphones text-2xl text-pink-500"></i> 听写 (เขียนตามคำบอก)</span>
+                        <i class="fa-solid fa-chevron-right text-pink-400"></i>
+                    </button>
                 </div>
-
-                <!-- Back Side -->
-                <div class="card-back absolute inset-0 rounded-3xl bg-gradient-to-b from-pink-50/60 via-white to-sky-50 p-6 flex flex-col justify-between items-center text-center border-2 border-pink-200">
-                    <div class="w-full flex justify-between items-center text-xs">
-                        <span id="card-pos" class="bg-pink-100 text-pink-600 px-2.5 py-1 rounded-full font-bold uppercase">phrase</span>
-                        <button onclick="event.stopPropagation(); speakWord();" class="text-pink-500 text-sm">
-                            <i class="fa-solid fa-volume-high"></i>
-                        </button>
-                    </div>
-
-                    <div class="my-auto space-y-2">
-                        <div id="card-pinyin" class="text-2xl font-bold text-pink-500 tracking-wide">nǐ hǎo</div>
-                        <div id="card-meaning" class="text-xl font-bold text-slate-800">สวัสดี</div>
-                        <div class="w-12 h-0.5 bg-pink-200 mx-auto my-2 rounded-full"></div>
-                        <p id="card-example" class="text-xs text-slate-500 italic px-2">"你好！很高兴认识你。"</p>
-                    </div>
-
-                    <div class="text-[10px] text-sky-400">
-                        แตะอีกครั้งเพื่อกลับหน้าหลัก
-                    </div>
-                </div>
-
             </div>
         </div>
 
-        <!-- Smart Review Controls -->
-        <div id="review-controls" class="hidden grid grid-cols-3 gap-2 mt-4">
-            <button onclick="rateReview('hard')" class="py-2.5 px-2 bg-red-50 border border-red-200 text-red-600 rounded-xl font-medium text-xs flex flex-col items-center">
-                <span class="font-bold">ยาก</span>
-            </button>
-            <button onclick="rateReview('good')" class="py-2.5 px-2 bg-amber-50 border border-amber-200 text-amber-700 rounded-xl font-medium text-xs flex flex-col items-center">
-                <span class="font-bold">ปานกลาง</span>
-            </button>
-            <button onclick="rateReview('easy')" class="py-2.5 px-2 bg-emerald-50 border border-emerald-200 text-emerald-600 rounded-xl font-medium text-xs flex flex-col items-center">
-                <span class="font-bold">ง่าย</span>
-            </button>
+        <!-- 2. Screen Mode Setup (สุ่ม / หมวดหมู่) -->
+        <div id="screen-setup" class="hidden space-y-4">
+            <div class="bg-white p-6 rounded-3xl border-2 border-sky-100 shadow-md space-y-4">
+                <h2 id="setup-title" class="text-lg font-bold text-sky-900 text-center">เลือกรูปแบบ</h2>
+                
+                <!-- Dictation Amount Slider -->
+                <div id="dictation-slider-box" class="hidden bg-pink-50 p-4 rounded-2xl border border-pink-200 space-y-2">
+                    <div class="flex justify-between text-xs font-bold text-pink-800">
+                        <span>จำนวนคำที่จะเขียน:</span>
+                        <span id="slider-val-text" class="text-pink-600 font-extrabold">All</span>
+                    </div>
+                    <input type="range" id="word-amount-slider" min="1" max="10" value="10" oninput="updateSliderText()" class="w-full accent-pink-500 cursor-pointer">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="selectOption('random')" class="p-4 bg-sky-50 hover:bg-sky-100 border-2 border-sky-200 rounded-2xl text-center font-bold text-sky-800 shadow-sm">
+                        <i class="fa-solid fa-shuffle text-xl text-sky-500 block mb-1"></i> สุ่มทั้งหมด
+                    </button>
+                    <button onclick="selectOption('category')" class="p-4 bg-sky-50 hover:bg-sky-100 border-2 border-sky-200 rounded-2xl text-center font-bold text-sky-800 shadow-sm">
+                        <i class="fa-solid fa-list text-xl text-sky-500 block mb-1"></i> หมวดหมู่
+                    </button>
+                </div>
+            </div>
         </div>
 
-        <!-- Navigation Controls -->
-        <div id="standard-controls" class="flex items-center justify-between gap-4 mt-4">
-            <button onclick="prevCard()" class="flex-1 py-3 bg-white text-sky-600 font-semibold rounded-2xl border-2 border-sky-200 shadow-sm flex items-center justify-center gap-2">
-                <i class="fa-solid fa-chevron-left"></i> ก่อนหน้า
-            </button>
-            <button onclick="nextCard()" class="flex-1 py-3 bg-puffer-pink text-white font-semibold rounded-2xl shadow-md flex items-center justify-center gap-2">
-                ถัดไป <i class="fa-solid fa-chevron-right"></i>
-            </button>
+        <!-- 3. Screen Category Select (HSK / จีนต้น / จีนฟังพูด) -->
+        <div id="screen-category" class="hidden space-y-4">
+            <div class="bg-white p-6 rounded-3xl border-2 border-sky-100 shadow-md space-y-4">
+                <h2 class="text-lg font-bold text-sky-900 text-center">เลือกหมวดหมู่คำศัพท์</h2>
+                
+                <div class="space-y-3">
+                    <!-- HSK -->
+                    <div class="bg-sky-50 p-3 rounded-2xl border border-sky-200 space-y-2">
+                        <div class="text-xs font-bold text-sky-800">HSK</div>
+                        <div class="grid grid-cols-3 gap-1.5 text-xs">
+                            <button onclick="startSessionWithCat('hsk1')" class="py-2 bg-white rounded-xl border font-semibold text-sky-700">HSK 1</button>
+                            <button onclick="startSessionWithCat('hsk2')" class="py-2 bg-white rounded-xl border font-semibold text-sky-700">HSK 2</button>
+                            <button onclick="startSessionWithCat('hsk3')" class="py-2 bg-white rounded-xl border font-semibold text-sky-700">HSK 3</button>
+                        </div>
+                    </div>
+
+                    <!-- จีนต้น -->
+                    <div class="bg-sky-50 p-3 rounded-2xl border border-sky-200 space-y-2">
+                        <div class="text-xs font-bold text-sky-800">จีนต้น (บทที่ 1-6)</div>
+                        <div class="grid grid-cols-3 gap-1.5 text-xs">
+                            <button onclick="startSessionWithCat('ch_basic_1')" class="py-1.5 bg-white rounded-xl border font-semibold text-sky-700">บทที่ 1</button>
+                            <button onclick="startSessionWithCat('ch_basic_2')" class="py-1.5 bg-white rounded-xl border font-semibold text-sky-700">บทที่ 2</button>
+                            <button onclick="startSessionWithCat('ch_basic_3')" class="py-1.5 bg-white rounded-xl border font-semibold text-sky-700">บทที่ 3</button>
+                            <button onclick="startSessionWithCat('ch_basic_4')" class="py-1.5 bg-white rounded-xl border font-semibold text-sky-700">บทที่ 4</button>
+                            <button onclick="startSessionWithCat('ch_basic_5')" class="py-1.5 bg-white rounded-xl border font-semibold text-sky-700">บทที่ 5</button>
+                            <button onclick="startSessionWithCat('ch_basic_6')" class="py-1.5 bg-white rounded-xl border font-semibold text-sky-700">บทที่ 6</button>
+                        </div>
+                    </div>
+
+                    <!-- จีนฟังพูด -->
+                    <div class="bg-sky-50 p-3 rounded-2xl border border-sky-200 space-y-2">
+                        <div class="text-xs font-bold text-sky-800">จีนฟังพูด (บทที่ 1-4)</div>
+                        <div class="grid grid-cols-2 gap-1.5 text-xs">
+                            <button onclick="startSessionWithCat('ch_listen_1')" class="py-1.5 bg-white rounded-xl border font-semibold text-sky-700">บทที่ 1</button>
+                            <button onclick="startSessionWithCat('ch_listen_2')" class="py-1.5 bg-white rounded-xl border font-semibold text-sky-700">บทที่ 2</button>
+                            <button onclick="startSessionWithCat('ch_listen_3')" class="py-1.5 bg-white rounded-xl border font-semibold text-sky-700">บทที่ 3</button>
+                            <button onclick="startSessionWithCat('ch_listen_4')" class="py-1.5 bg-white rounded-xl border font-semibold text-sky-700">บทที่ 4</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Screen Flashcards Game -->
+        <div id="screen-flashcard-game" class="hidden space-y-4">
+            <div class="flex justify-between items-center text-xs text-sky-700 font-bold px-2">
+                <span id="fc-progress-text">คำที่ 1 / 10</span>
+                <span id="fc-remember-count" class="text-emerald-600">จำได้: 0</span>
+            </div>
+
+            <!-- Card area -->
+            <div class="relative w-full h-80 card-perspective select-none">
+                <div id="fc-card" onclick="flipFcCard()" class="card-inner w-full h-full relative cursor-pointer shadow-lg rounded-3xl border-4 border-white">
+                    <!-- Front -->
+                    <div class="card-front absolute inset-0 rounded-3xl bg-white p-6 flex flex-col justify-between items-center text-center border-2 border-sky-100">
+                        <span class="text-xs text-sky-400 font-semibold">แตะเพื่อพลิกการ์ด</span>
+                        <h2 id="fc-front-hanzi" class="text-6xl font-chinese text-slate-800 my-auto font-bold">你好</h2>
+                        <span class="text-xs text-slate-400">Pakkapao Flashcard</span>
+                    </div>
+                    <!-- Back -->
+                    <div class="card-back absolute inset-0 rounded-3xl bg-gradient-to-b from-pink-50 via-white to-sky-50 p-6 flex flex-col justify-between items-center text-center border-2 border-pink-200">
+                        <div id="fc-back-pos" class="text-xs bg-pink-100 text-pink-600 px-2.5 py-1 rounded-full font-bold uppercase">v.</div>
+                        <div class="my-auto space-y-2">
+                            <div id="fc-back-pinyin" class="text-2xl font-bold text-pink-500">nǐ hǎo</div>
+                            <div id="fc-back-meaning" class="text-xl font-bold text-slate-800">สวัสดี</div>
+                            <p id="fc-back-example" class="text-xs text-slate-500 italic px-2">"你好！很高兴认识你。"</p>
+                        </div>
+                        <button onclick="event.stopPropagation(); speakText(currentFcWord().hanzi);" class="text-pink-500 text-sm flex items-center gap-1 font-bold">
+                            <i class="fa-solid fa-volume-high"></i> ฟังเสียง
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls (ปัดซ้าย/ขวา) -->
+            <div class="flex items-center justify-between gap-4 pt-2">
+                <button onclick="handleFcSwipe(false)" class="flex-1 py-3 bg-red-50 text-red-500 border-2 border-red-200 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-sm active:scale-95 transition">
+                    <i class="fa-solid fa-xmark text-lg"></i> จำไม่ได้
+                </button>
+                <button onclick="handleFcSwipe(true)" class="flex-1 py-3 bg-emerald-50 text-emerald-600 border-2 border-emerald-200 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-sm active:scale-95 transition">
+                    <i class="fa-solid fa-check text-lg"></i> จำได้
+                </button>
+            </div>
+        </div>
+
+        <!-- 5. Screen Dictation Game (听写) -->
+        <div id="screen-dictation-game" class="hidden space-y-4">
+            <div class="flex justify-between items-center text-xs text-pink-700 font-bold px-2">
+                <span id="dt-progress-text">คำที่ 1 / 10</span>
+            </div>
+
+            <!-- Dictation Card Area -->
+            <div class="relative w-full h-80 card-perspective select-none">
+                <div id="dt-card" onclick="flipDtCard()" class="card-inner w-full h-full relative cursor-pointer shadow-lg rounded-3xl border-4 border-white">
+                    <!-- Front -->
+                    <div class="card-front absolute inset-0 rounded-3xl bg-white p-6 flex flex-col justify-between items-center text-center border-2 border-pink-100">
+                        <span class="text-xs text-pink-400 font-semibold">แตะเพื่อดูเฉลย</span>
+                        <div class="my-auto space-y-4">
+                            <button onclick="event.stopPropagation(); speakCurrentDtWord();" class="w-24 h-24 rounded-full bg-pink-100 border-4 border-pink-300 text-pink-500 text-4xl flex items-center justify-center mx-auto shadow-md active:scale-90 transition">
+                                <i class="fa-solid fa-volume-high"></i>
+                            </button>
+                            <p class="text-xs text-slate-500 font-medium">กดปุ่มเพื่อฟังเสียงตัวจีน</p>
+                        </div>
+                        <span class="text-[10px] text-slate-400">ฟังแล้วหยิบกระดาษมาเขียนตามได้เลย!</span>
+                    </div>
+                    <!-- Back -->
+                    <div class="card-back absolute inset-0 rounded-3xl bg-gradient-to-b from-sky-50 via-white to-pink-50 p-6 flex flex-col justify-between items-center text-center border-2 border-sky-200">
+                        <div id="dt-back-pos" class="text-xs bg-sky-100 text-sky-600 px-2.5 py-1 rounded-full font-bold uppercase">v.</div>
+                        <div class="my-auto space-y-2">
+                            <h2 id="dt-back-hanzi" class="text-4xl font-chinese text-slate-800 font-bold">你好</h2>
+                            <div id="dt-back-pinyin" class="text-xl font-bold text-pink-500">nǐ hǎo</div>
+                            <div id="dt-back-meaning" class="text-lg font-bold text-slate-800">สวัสดี</div>
+                            <p id="dt-back-example" class="text-xs text-slate-500 italic px-2">"你好！很高兴认识你。"</p>
+                        </div>
+                        <span class="text-[10px] text-sky-400">แตะเพื่อสลับกลับ</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="flex items-center justify-between gap-3 pt-2">
+                <button onclick="prevDtWord()" class="py-3 px-4 bg-white text-slate-600 border-2 border-slate-200 rounded-2xl font-bold shadow-sm active:scale-95 transition text-xs">
+                    <i class="fa-solid fa-chevron-left"></i> ก่อนหน้า
+                </button>
+                <button onclick="nextDtWord()" class="flex-1 py-3 bg-pink-500 text-white rounded-2xl font-bold shadow-md active:scale-95 transition text-xs flex items-center justify-center gap-1">
+                    คำต่อไป <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- 6. Screen Summary / Review -->
+        <div id="screen-summary" class="hidden space-y-4">
+            <div class="bg-white p-6 rounded-3xl border-2 border-sky-100 shadow-md space-y-4">
+                <h2 class="text-xl font-bold text-sky-900 text-center">สรุปผลการเรียนรู้</h2>
+                <div id="summary-score-box" class="text-center font-bold text-lg text-slate-700 bg-sky-50 p-3 rounded-2xl border border-sky-200">
+                    <!-- Dynamic score text -->
+                </div>
+
+                <!-- Dictation Answer List -->
+                <div id="dictation-answer-list" class="hidden space-y-2 max-h-60 overflow-y-auto pr-1">
+                    <!-- Dynamic answer items -->
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 pt-2">
+                    <button id="btn-review-failed" onclick="reviewFailedOnly()" class="p-3 bg-pink-500 text-white rounded-2xl font-bold text-xs shadow-md">
+                        ทบทวนเฉพาะคำที่ผิด
+                    </button>
+                    <button onclick="showScreen('screen-home')" class="p-3 bg-slate-100 text-slate-700 rounded-2xl font-bold text-xs border border-slate-200">
+                        กลับหน้าแรก
+                    </button>
+                </div>
+            </div>
         </div>
 
     </main>
 
-    <!-- Stats Modal -->
-    <div id="stats-modal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border-2 border-sky-100 relative space-y-4">
-            <button onclick="toggleStatsModal()" class="absolute top-4 right-4 text-slate-400">
-                <i class="fa-solid fa-xmark text-lg"></i>
-            </button>
-            <h3 class="font-bold text-base text-sky-800">สถิติการจำ</h3>
-            <div class="grid grid-cols-3 gap-2 text-center py-2">
-                <div class="bg-red-50 p-3 rounded-2xl"><div id="stat-hard-count" class="text-xl font-bold text-red-600">0</div><div class="text-[10px]">ยาก</div></div>
-                <div class="bg-amber-50 p-3 rounded-2xl"><div id="stat-good-count" class="text-xl font-bold text-amber-600">0</div><div class="text-[10px]">ปานกลาง</div></div>
-                <div class="bg-emerald-50 p-3 rounded-2xl"><div id="stat-easy-count" class="text-xl font-bold text-emerald-600">0</div><div class="text-[10px]">ง่าย</div></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Application Script -->
+    <!-- App Logic Script -->
     <script>
+        // คลังคำศัพท์ตัวอย่าง
         const defaultWords = [
             { id: 1, hanzi: "你好", pinyin: "nǐ hǎo", meaning: "สวัสดี", pos: "phrase", example: "你好！很高兴认识你。", category: "hsk1" },
             { id: 2, hanzi: "谢谢", pinyin: "xiè xie", meaning: "ขอบคุณ", pos: "v.", example: "谢谢你的帮助。", category: "hsk1" },
-            { id: 3, hanzi: "苹果", pinyin: "píng guǒ", meaning: "แอปเปิ้ล", pos: "n.", example: "我喜欢吃红苹果。", category: "food" },
-            { id: 4, hanzi: "喝水", pinyin: "hē shuǐ", meaning: "ดื่มน้ำ", pos: "v.", example: "天气很热，多喝水。", category: "food" },
-            { id: 5, hanzi: "学习", pinyin: "xué xí", meaning: "เรียน / ศึกษา", pos: "v.", example: "我在学习中文。", category: "daily" },
-            { id: 6, hanzi: "漂亮", pinyin: "piào liang", meaning: "สวย", pos: "adj.", example: "她穿衣服很漂亮。", category: "daily" },
-            { id: 7, hanzi: "非常", pinyin: "fēi cháng", meaning: "อย่างยิ่ง / มาก", pos: "adv.", example: "非常感谢你。", category: "daily" },
-            { id: 8, hanzi: "朋友", pinyin: "péng you", meaning: "เพื่อน", pos: "n.", example: "他是我的好朋友。", category: "daily" },
-            { id: 9, hanzi: "再见", pinyin: "zài jiàn", meaning: "ลาก่อน", pos: "phrase", example: "明天见，再见！", category: "hsk1" }
+            { id: 3, hanzi: "苹果", pinyin: "píng guǒ", meaning: "แอปเปิ้ล", pos: "n.", example: "我喜欢吃红苹果。", category: "ch_basic_1" },
+            { id: 4, hanzi: "喝水", pinyin: "hē shuǐ", meaning: "ดื่มน้ำ", pos: "v.", example: "天气很热，多喝水。", category: "ch_basic_1" },
+            { id: 5, hanzi: "学习", pinyin: "xué xí", meaning: "เรียน / ศึกษา", pos: "v.", example: "我在学习中文。", category: "ch_listen_1" },
+            { id: 6, hanzi: "漂亮", pinyin: "piào liang", meaning: "สวย", pos: "adj.", example: "她穿衣服很漂亮。", category: "ch_listen_1" }
         ];
 
         let words = [...defaultWords];
-        let currentWordList = [...words];
+        let currentMode = 'flashcards'; // flashcards | dictation
+        let sessionWords = [];
         let currentIndex = 0;
-        let isFlipped = false;
-        let reviewData = JSON.parse(localStorage.getItem('pakkapao_review_data')) || {};
+        
+        // Tracking
+        let rememberedWords = [];
+        let failedWords = [];
+        let dictationChecks = {}; // { id: true/false }
 
-        function initApp() {
-            setMode('random');
+        function showScreen(screenId) {
+            const screens = ['screen-home', 'screen-setup', 'screen-category', 'screen-flashcard-game', 'screen-dictation-game', 'screen-summary'];
+            screens.forEach(id => document.getElementById(id).classList.add('hidden'));
+            document.getElementById(screenId).classList.remove('hidden');
         }
 
-        function setMode(mode) {
-            isFlipped = false;
-            document.getElementById('flashcard').classList.remove('flipped');
-
-            document.getElementById('category-panel').classList.add('hidden');
-            document.getElementById('review-controls').classList.add('hidden');
-            document.getElementById('standard-controls').classList.remove('hidden');
-
-            if (mode === 'random') {
-                currentWordList = [...words].sort(() => Math.random() - 0.5);
-            } else if (mode === 'category') {
-                document.getElementById('category-panel').classList.remove('hidden');
-                filterByCategory();
-            } else if (mode === 'smartReview') {
-                document.getElementById('review-controls').classList.remove('hidden');
-                document.getElementById('standard-controls').classList.add('hidden');
+        function startModeSetup(mode) {
+            currentMode = mode;
+            document.getElementById('setup-title').innerText = mode === 'flashcards' ? 'Flashcards - เลือกรูปแบบ' : '听写 - เลือกรูปแบบ';
+            
+            const sliderBox = document.getElementById('dictation-slider-box');
+            if (mode === 'dictation') {
+                sliderBox.classList.remove('hidden');
+                document.getElementById('word-amount-slider').max = words.length;
+                document.getElementById('word-amount-slider').value = words.length;
+                updateSliderText();
+            } else {
+                sliderBox.classList.add('hidden');
             }
 
+            showScreen('screen-setup');
+        }
+
+        function updateSliderText() {
+            const val = document.getElementById('word-amount-slider').value;
+            const max = document.getElementById('word-amount-slider').max;
+            document.getElementById('slider-val-text').innerText = (val === max) ? 'ทั้งหมด' : `${val} คำ`;
+        }
+
+        function selectOption(opt) {
+            if (opt === 'random') {
+                let pool = [...words].sort(() => Math.random() - 0.5);
+                if (currentMode === 'dictation') {
+                    const limit = parseInt(document.getElementById('word-amount-slider').value);
+                    pool = pool.slice(0, limit);
+                }
+                startSession(pool);
+            } else {
+                showScreen('screen-category');
+            }
+        }
+
+        function startSessionWithCat(cat) {
+            let filtered = words.filter(w => w.category === cat);
+            if (filtered.length === 0) filtered = [...words]; // fallback
+            if (currentMode === 'dictation') {
+                const limit = parseInt(document.getElementById('word-amount-slider').value);
+                filtered = filtered.slice(0, limit);
+            }
+            startSession(filtered);
+        }
+
+        function startSession(wordList) {
+            sessionWords = [...wordList];
             currentIndex = 0;
-            renderCard();
+            rememberedWords = [];
+            failedWords = [];
+            dictationChecks = {};
+
+            if (currentMode === 'flashcards') {
+                showScreen('screen-flashcard-game');
+                renderFcCard();
+            } else {
+                showScreen('screen-dictation-game');
+                renderDtCard();
+                setTimeout(() => speakCurrentDtWord(), 400);
+            }
         }
 
-        function renderCard() {
-            if (currentWordList.length === 0) return;
-            const item = currentWordList[currentIndex];
-            document.getElementById('card-hanzi').innerText = item.hanzi;
-            document.getElementById('card-pinyin').innerText = item.pinyin;
-            document.getElementById('card-meaning').innerText = item.meaning;
-            document.getElementById('card-pos').innerText = item.pos || 'vocab';
-            document.getElementById('card-example').innerText = item.example ? `"${item.example}"` : "";
-            document.getElementById('card-category-badge').innerText = item.category.toUpperCase();
-            document.getElementById('card-counter').innerText = `${currentIndex + 1} / ${currentWordList.length}`;
+        // --- Flashcard Logic ---
+        function currentFcWord() { return sessionWords[currentIndex]; }
+
+        function renderFcCard() {
+            const item = currentFcWord();
+            document.getElementById('fc-card').classList.remove('flipped');
+            document.getElementById('fc-progress-text').innerText = `คำที่ ${currentIndex + 1} / ${sessionWords.length}`;
+            document.getElementById('fc-remember-count').innerText = `จำได้: ${rememberedWords.length}`;
+
+            document.getElementById('fc-front-hanzi').innerText = item.hanzi;
+            document.getElementById('fc-back-pos').innerText = item.pos || 'vocab';
+            document.getElementById('fc-back-pinyin').innerText = item.pinyin;
+            document.getElementById('fc-back-meaning').innerText = item.meaning;
+            document.getElementById('fc-back-example').innerText = item.example ? `"${item.example}"` : "";
         }
 
-        function flipCard() {
-            isFlipped = !isFlipped;
-            const fc = document.getElementById('flashcard');
-            if (isFlipped) fc.classList.add('flipped');
-            else fc.classList.remove('flipped');
+        function flipFcCard() {
+            document.getElementById('fc-card').classList.toggle('flipped');
         }
 
-        function nextCard() {
-            isFlipped = false;
-            document.getElementById('flashcard').classList.remove('flipped');
-            setTimeout(() => {
-                currentIndex = (currentIndex + 1) % currentWordList.length;
-                renderCard();
-            }, 150);
+        function handleFcSwipe(isRemembered) {
+            const item = currentFcWord();
+            if (isRemembered) rememberedWords.push(item);
+            else failedWords.push(item);
+
+            if (currentIndex + 1 < sessionWords.length) {
+                currentIndex++;
+                renderFcCard();
+            } else {
+                finishSession();
+            }
         }
 
-        function prevCard() {
-            isFlipped = false;
-            document.getElementById('flashcard').classList.remove('flipped');
-            setTimeout(() => {
-                currentIndex = (currentIndex - 1 + currentWordList.length) % currentWordList.length;
-                renderCard();
-            }, 150);
+        // --- Dictation Logic (听写) ---
+        function currentDtWord() { return sessionWords[currentIndex]; }
+
+        function renderDtCard() {
+            const item = currentDtWord();
+            document.getElementById('dt-card').classList.remove('flipped');
+            document.getElementById('dt-progress-text').innerText = `คำที่ ${currentIndex + 1} / ${sessionWords.length}`;
+
+            document.getElementById('dt-back-hanzi').innerText = item.hanzi;
+            document.getElementById('dt-back-pos').innerText = item.pos || 'vocab';
+            document.getElementById('dt-back-pinyin').innerText = item.pinyin;
+            document.getElementById('dt-back-meaning').innerText = item.meaning;
+            document.getElementById('dt-back-example').innerText = item.example ? `"${item.example}"` : "";
         }
 
-        function speakWord() {
-            if (currentWordList.length === 0) return;
-            const text = currentWordList[currentIndex].hanzi;
+        function flipDtCard() {
+            document.getElementById('dt-card').classList.toggle('flipped');
+        }
+
+        function speakCurrentDtWord() {
+            speakText(currentDtWord().hanzi);
+        }
+
+        function nextDtWord() {
+            if (currentIndex + 1 < sessionWords.length) {
+                currentIndex++;
+                renderDtCard();
+                setTimeout(() => speakCurrentDtWord(), 300);
+            } else {
+                finishSession();
+            }
+        }
+
+        function prevDtWord() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                renderDtCard();
+            }
+        }
+
+        // --- TTS Engine ---
+        function speakText(text) {
             if ('speechSynthesis' in window) {
                 window.speechSynthesis.cancel();
                 const utterance = new SpeechSynthesisUtterance(text);
@@ -310,40 +458,51 @@
             }
         }
 
-        function changeCategory() {
-            filterByCategory();
-            currentIndex = 0;
-            renderCard();
+        // --- Summary & Finish ---
+        function finishSession() {
+            showScreen('screen-summary');
+            const scoreBox = document.getElementById('summary-score-box');
+            const answerList = document.getElementById('dictation-answer-list');
+
+            if (currentMode === 'flashcards') {
+                answerList.classList.add('hidden');
+                scoreBox.innerHTML = `จำได้: <span class="text-emerald-600 font-extrabold">${rememberedWords.length}</span> / ${sessionWords.length} คำ`;
+            } else {
+                answerList.classList.remove('hidden');
+                scoreBox.innerText = `เฉลยคำศัพท์ทั้งหมด (${sessionWords.length} คำ)`;
+                
+                answerList.innerHTML = sessionWords.map((item, idx) => `
+                    <div class="flex items-center justify-between p-3 bg-slate-50 border rounded-2xl text-xs">
+                        <div>
+                            <span class="font-bold text-slate-400 mr-2">${idx + 1}.</span>
+                            <span class="font-bold font-chinese text-slate-800 text-sm">${item.hanzi}</span>
+                            <span class="text-pink-500 font-semibold ml-2">${item.pinyin}</span>
+                            <span class="text-slate-500 ml-2">(${item.meaning})</span>
+                        </div>
+                        <input type="checkbox" onchange="toggleDtResult(${item.id}, this.checked)" class="w-5 h-5 accent-pink-500 cursor-pointer">
+                    </div>
+                `).join('');
+            }
         }
 
-        function filterByCategory() {
-            const cat = document.getElementById('category-select').value;
-            if (cat === 'all') currentWordList = [...words];
-            else currentWordList = words.filter(w => w.category === cat);
+        function toggleDtResult(id, isCorrect) {
+            dictationChecks[id] = isCorrect;
         }
 
-        function rateReview(rating) {
-            const currentItem = currentWordList[currentIndex];
-            reviewData[currentItem.id] = rating;
-            localStorage.setItem('pakkapao_review_data', JSON.stringify(reviewData));
-            nextCard();
-        }
+        function reviewFailedOnly() {
+            let toReview = [];
+            if (currentMode === 'flashcards') {
+                toReview = [...failedWords];
+            } else {
+                toReview = sessionWords.filter(w => !dictationChecks[w.id]);
+            }
 
-        function toggleStatsModal() {
-            document.getElementById('stats-modal').classList.toggle('hidden');
-            let hard = 0, good = 0, easy = 0;
-            Object.values(reviewData).forEach(v => {
-                if (v === 'hard') hard++;
-                if (v === 'good') good++;
-                if (v === 'easy') easy++;
-            });
-            document.getElementById('stat-hard-count').innerText = hard;
-            document.getElementById('stat-good-count').innerText = good;
-            document.getElementById('stat-easy-count').innerText = easy;
+            if (toReview.length === 0) {
+                alert('คุณทำถูกต้องหมดทุกคำแล้ว! สุดยอดมากๆ ครับ 🎉');
+                return;
+            }
+            startSession(toReview);
         }
-
-        window.onload = initApp;
     </script>
 </body>
-    </html>
-    
+</html>
