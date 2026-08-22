@@ -1,347 +1,254 @@
-<!DOCTYPE html>
-<html lang="th">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>pakkapaoponglom - Chinese Flashcards</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts: Mali / Prompt (Thai & English Fonts) -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;600;700&family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
+        // App Initialization Logic
+        function initApp() {
+            setMode('random');
+            updateStatsView();
+        }
 
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'puffer-blue': '#38BDF8',
-                        'puffer-blue-light': '#E0F2FE',
-                        'puffer-pink': '#EC4899',
-                        'puffer-pink-light': '#FCE7F3',
-                        'puffer-dark': '#1E293B'
-                    },
-                    fontFamily: {
-                        'thai': ['Mali', 'Prompt', 'sans-serif'],
-                        'chinese': ['"PingFang SC"', '"Microsoft YaHei"', '"SimSun"', '"Songti SC"', 'serif']
-                    }
-                }
+        // Mode Switcher
+        function setMode(mode) {
+            currentMode = mode;
+            isFlipped = false;
+            flashcard.classList.remove('flipped');
+
+            // Reset UI Tab Styles
+            document.getElementById('mode-random-btn').className = "flex-1 py-2 rounded-xl transition text-center";
+            document.getElementById('mode-category-btn').className = "flex-1 py-2 rounded-xl transition text-center";
+            document.getElementById('mode-review-btn').className = "flex-1 py-2 rounded-xl transition text-center";
+
+            document.getElementById('category-panel').classList.add('hidden');
+            document.getElementById('review-controls').classList.add('hidden');
+            document.getElementById('standard-controls').classList.remove('hidden');
+
+            if (mode === 'random') {
+                document.getElementById('mode-random-btn').className += " shadow-sm bg-white text-puffer-pink font-bold";
+                currentWordList = [...words].sort(() => Math.random() - 0.5);
+                mascotDialog.innerText = '"สุ่มคำศัพท์ขึ้นมาทบทวนเพลินๆ กันเถอะ!"';
+            } else if (mode === 'category') {
+                document.getElementById('mode-category-btn').className += " shadow-sm bg-white text-puffer-pink font-bold";
+                document.getElementById('category-panel').classList.remove('hidden');
+                filterByCategory();
+                mascotDialog.innerText = '"เลือกหมวดหมู่ที่ต้องการเน้นทบทวนได้เลยครับ"';
+            } else if (mode === 'smartReview') {
+                document.getElementById('mode-review-btn').className += " shadow-sm bg-white text-puffer-pink font-bold";
+                document.getElementById('review-controls').classList.remove('hidden');
+                document.getElementById('standard-controls').classList.add('hidden');
+                setupSmartReviewList();
+                mascotDialog.innerText = '"ระบบปักเป้าช่วยจำ จะเลือกคำที่คุณยังไม่แม่นมาให้ทบทวนก่อนนะ!"';
+            }
+
+            currentIndex = 0;
+            renderCard();
+        }
+
+        // Render Current Card Data
+        function renderCard() {
+            if (currentWordList.length === 0) {
+                cardHanzi.innerText = "🎉";
+                cardPinyin.innerText = "ครบแล้ว!";
+                cardMeaning.innerText = "ไม่มีคำศัพท์ในหมวดนี้";
+                cardExample.innerText = "";
+                cardPos.innerText = "-";
+                cardCategoryBadge.innerText = "Empty";
+                cardCounter.innerText = "0 / 0";
+                return;
+            }
+
+            const item = currentWordList[currentIndex];
+            cardHanzi.innerText = item.hanzi;
+            cardPinyin.innerText = item.pinyin;
+            cardMeaning.innerText = item.meaning;
+            cardPos.innerText = item.pos || 'vocab';
+            cardExample.innerText = item.example ? `"${item.example}"` : "";
+            cardCategoryBadge.innerText = item.category.toUpperCase();
+            cardCounter.innerText = `${currentIndex + 1} / ${currentWordList.length}`;
+
+            // Randomize mascot dialog occasionally
+            if (Math.random() < 0.3) {
+                const randomQuote = mascotQuotes[Math.floor(Math.random() * mascotQuotes.length)];
+                mascotDialog.innerText = `"${randomQuote}"`;
             }
         }
-    </script>
 
-    <style>
-        body {
-            font-family: 'Mali', 'Prompt', sans-serif;
-            background-color: #F0F9FF;
-            background-image: radial-gradient(#BAE6FD 1px, transparent 1px);
-            background-size: 24px 24px;
+        // Flip Card
+        function flipCard() {
+            if (currentWordList.length === 0) return;
+            isFlipped = !isFlipped;
+            if (isFlipped) {
+                flashcard.classList.add('flipped');
+            } else {
+                flashcard.classList.remove('flipped');
+            }
         }
 
-        /* Standard Songti / Serif Chinese Font Style */
-        .font-chinese {
-            font-family: "PingFang SC", "Microsoft YaHei", "SimSun", "Songti SC", serif;
+        // Next / Previous Navigation
+        function nextCard() {
+            if (currentWordList.length === 0) return;
+            isFlipped = false;
+            flashcard.classList.remove('flipped');
+            setTimeout(() => {
+                currentIndex = (currentIndex + 1) % currentWordList.length;
+                renderCard();
+            }, 150);
         }
 
-        /* Perspective for 3D card flip */
-        .card-perspective {
-            perspective: 1000px;
+        function prevCard() {
+            if (currentWordList.length === 0) return;
+            isFlipped = false;
+            flashcard.classList.remove('flipped');
+            setTimeout(() => {
+                currentIndex = (currentIndex - 1 + currentWordList.length) % currentWordList.length;
+                renderCard();
+            }, 150);
         }
 
-        .card-inner {
-            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-            transform-style: preserve-3d;
+        // Speech Synthesis (Text-to-Speech for Chinese)
+        function speakWord() {
+            if (currentWordList.length === 0) return;
+            const text = currentWordList[currentIndex].hanzi;
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel(); // Stop active speech
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'zh-CN';
+                utterance.rate = 0.85; // Slightly slower for language learning
+                window.speechSynthesis.speak(utterance);
+            } else {
+                alert("เบราว์เซอร์ของคุณไม่รองรับการออกเสียงระบบ TTS");
+            }
         }
 
-        .card-inner.flipped {
-            transform: rotateY(180deg);
+        // Category Selection
+        function changeCategory() {
+            filterByCategory();
+            currentIndex = 0;
+            renderCard();
         }
 
-        .card-front, .card-back {
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
+        function filterByCategory() {
+            const cat = document.getElementById('category-select').value;
+            if (cat === 'all') {
+                currentWordList = [...words];
+            } else {
+                currentWordList = words.filter(w => w.category === cat);
+            }
         }
 
-        .card-back {
-            transform: rotateY(180deg);
+        // Smart Review Engine (Spaced Repetition Light)
+        function setupSmartReviewList() {
+            // Sort by review score: 'hard' first, 'good' second, 'easy' / unrated last
+            currentWordList = [...words].sort((a, b) => {
+                const scoreMap = { 'hard': 1, 'good': 2, 'easy': 3 };
+                const scoreA = scoreMap[reviewData[a.id]] || 0;
+                const scoreB = scoreMap[reviewData[b.id]] || 0;
+                return scoreA - scoreB;
+            });
         }
 
-        /* Chinese Cloud SVG Decor */
-        .cloud-pattern {
-            background-image: url("data:image/svg+xml,%3Csvg width='80' height='40' viewBox='0 0 80 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10 25 C 10 15, 20 10, 30 15 C 35 5, 50 5, 55 15 C 65 10, 75 18, 70 28 C 75 35, 60 38, 50 35 C 40 39, 20 38, 10 25 Z' fill='none' stroke='%23bae6fd' stroke-width='2' opacity='0.4'/%3E%3C/svg%3E");
+        function rateReview(rating) {
+            if (currentWordList.length === 0) return;
+            const currentItem = currentWordList[currentIndex];
+            reviewData[currentItem.id] = rating;
+            localStorage.setItem('pakkapao_review_data', JSON.stringify(reviewData));
+            updateStatsView();
+            nextCard();
         }
 
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
+        // Stats Modal Logic
+        function toggleStatsModal() {
+            const modal = document.getElementById('stats-modal');
+            modal.classList.toggle('hidden');
+            updateStatsView();
         }
-        ::-webkit-scrollbar-track {
-            background: #F0F9FF;
+
+        function updateStatsView() {
+            let hard = 0, good = 0, easy = 0;
+            Object.values(reviewData).forEach(val => {
+                if (val === 'hard') hard++;
+                if (val === 'good') good++;
+                if (val === 'easy') easy++;
+            });
+            document.getElementById('stat-hard-count').innerText = hard;
+            document.getElementById('stat-good-count').innerText = good;
+            document.getElementById('stat-easy-count').innerText = easy;
         }
-        ::-webkit-scrollbar-thumb {
-            background: #7DD3FC;
-            border-radius: 9999px;
+
+        function resetProgress() {
+            if (confirm("คุณต้องการรีเซ็ตสถิติการจำทั้งหมดหรือไม่?")) {
+                reviewData = {};
+                localStorage.removeItem('pakkapao_review_data');
+                updateStatsView();
+                if (currentMode === 'smartReview') setupSmartReviewList();
+                renderCard();
+            }
         }
-    </style>
-</head>
-<body class="min-h-screen text-slate-700 flex flex-col justify-between cloud-pattern selection:bg-puffer-pink-light selection:text-puffer-pink">
 
-    <!-- Header / Navbar -->
-    <header class="bg-white/80 backdrop-blur-md border-b border-sky-100 sticky top-0 z-40 px-4 py-3 shadow-sm">
-        <div class="max-w-4xl mx-auto flex items-center justify-between">
-            <!-- Logo & Brand Section -->
-            <div class="flex items-center space-x-3 cursor-pointer" onclick="setMode('random')">
-                <div class="relative w-12 h-12 rounded-full bg-sky-100 border-2 border-sky-300 overflow-hidden flex items-center justify-center shadow-inner group">
-                    <!-- 📌 สามารถเปลี่ยน URL โลโก้ของคุณได้ที่ src ส้นนี้ -->
-                    <img id="app-logo" src="https://via.placeholder.com/150/38BDF8/FFFFFF?text=Pufferfish" alt="pakkapaoponglom Logo" class="w-full h-full object-cover group-hover:scale-110 transition duration-300" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'text-2xl\'>🐡</div>';">
-                </div>
-                <div>
-                    <h1 class="font-bold text-xl text-sky-800 leading-tight tracking-tight">
-                        pakkapaoponglom
-                    </h1>
-                    <p class="text-xs text-pink-500 font-medium">Cute & Fun Chinese Flashcards</p>
-                </div>
-            </div>
+        // CSV / Google Sheets Parser Modal Logic
+        function toggleCustomSheetModal() {
+            document.getElementById('gsheet-modal').classList.toggle('hidden');
+        }
 
-            <!-- Header Navigation / Stats -->
-            <div class="flex items-center gap-2">
-                <button onclick="toggleStatsModal()" class="px-3 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-600 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition border border-sky-200">
-                    <i class="fa-solid fa-chart-line text-pink-400"></i>
-                    <span>สถิติ</span>
-                </button>
-            </div>
-        </div>
-    </header>
+        function loadGoogleSheetData() {
+            const url = document.getElementById('sheet-url-input').value.trim();
+            if (!url) {
+                alert("กรุณากรอก URL ของ Google Sheets CSV");
+                return;
+            }
 
-    <!-- Main Container -->
-    <main class="max-w-md w-full mx-auto p-4 flex-1 flex flex-col justify-center my-2">
+            fetch(url)
+                .then(res => {
+                    if (!res.ok) throw new Error("Network response was not ok");
+                    return res.text();
+                })
+                .then(csvText => {
+                    parseCSVData(csvText);
+                    toggleCustomSheetModal();
+                    alert("นำเข้าข้อมูลคำศัพท์เรียบร้อยแล้ว!");
+                })
+                .catch(err => {
+                    alert("ไม่สามารถดึงข้อมูลได้ กรุณาตรวจสอบว่าไฟล์ได้รับการ Publish to Web เป็น CSV แล้วหรือยัง\n\nรายละเอียด: " + err.message);
+                });
+        }
 
-        <!-- Mascot Dialog Banner -->
-        <div class="bg-white border-2 border-sky-200 rounded-2xl p-3 shadow-sm mb-4 flex items-center gap-3 relative">
-            <div class="w-10 h-10 shrink-0 bg-sky-100 rounded-full flex items-center justify-center border border-sky-300">
-                <span class="text-xl">🐡</span>
-            </div>
-            <div class="text-xs text-sky-900 font-medium">
-                <p id="mascot-dialog">"สวัสดีครับ! วันนี้มาฝึกทบทวนภาษาจีนกับน้องปักเป้ากันนะ!"</p>
-            </div>
-            <div class="absolute -bottom-2 left-6 w-3 h-3 bg-white border-r-2 border-b-2 border-sky-200 transform rotate-45"></div>
-        </div>
+        function parseCSVData(text) {
+            const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+            if (lines.length <= 1) return;
 
-        <!-- Mode Selector Tabs -->
-        <div class="bg-sky-100/80 p-1 rounded-2xl flex text-xs font-semibold text-sky-700 mb-4 shadow-inner">
-            <button id="mode-random-btn" onclick="setMode('random')" class="flex-1 py-2 rounded-xl transition text-center shadow-sm bg-white text-puffer-pink font-bold">
-                <i class="fa-solid fa-shuffle mr-1"></i> สุ่มคำ
-            </button>
-            <button id="mode-category-btn" onclick="setMode('category')" class="flex-1 py-2 rounded-xl transition text-center">
-                <i class="fa-solid fa-list mr-1"></i> หมวดหมู่
-            </button>
-            <button id="mode-review-btn" onclick="setMode('smartReview')" class="flex-1 py-2 rounded-xl transition text-center">
-                <i class="fa-solid fa-brain mr-1"></i> ปักเป้าช่วยจำ
-            </button>
-        </div>
+            const newWords = [];
+            // Skip header (i = 1)
+            for (let i = 1; i < lines.length; i++) {
+                // Split CSV handling basic commas
+                const cols = lines[i].split(',').map(c => c.replace(/^"|"$/g, '').trim());
+                if (cols[0]) {
+                    newWords.push({
+                        id: 1000 + i,
+                        hanzi: cols[0] || "",
+                        pinyin: cols[1] || "",
+                        meaning: cols[2] || "",
+                        pos: cols[3] || "v.",
+                        example: cols[4] || "",
+                        category: "custom"
+                    });
+                }
+            }
 
-        <!-- Category / Source Selection Panel -->
-        <div id="category-panel" class="hidden bg-white p-4 rounded-2xl border border-sky-200 shadow-sm mb-4 space-y-3">
-            <div class="flex justify-between items-center">
-                <label class="text-xs font-bold text-sky-800">เลือกหมวดหมู่คำศัพท์:</label>
-                <button onclick="toggleCustomSheetModal()" class="text-xs text-pink-500 hover:text-pink-600 font-semibold underline">
-                    + นำเข้าจาก Google Sheets
-                </button>
-            </div>
-            <select id="category-select" onchange="changeCategory(this.value)" class="w-full text-xs p-2.5 bg-sky-50 border border-sky-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-400 text-sky-900">
-                <option value="all">ทั้งหมด (All Words)</option>
-                <option value="hsk1">HSK 1 - พื้นฐาน</option>
-                <option value="food">หมวดอาหาร & เครื่องดื่ม</option>
-                <option value="daily">ชีวิตประจำวัน</option>
-            </select>
-        </div>
-
-        <!-- Flashcard Flip Area -->
-        <div class="relative w-full h-80 card-perspective group select-none">
-            <div id="flashcard" onclick="flipCard()" class="card-inner w-full h-full relative cursor-pointer shadow-lg hover:shadow-xl rounded-3xl border-4 border-white">
+            if (newWords.length > 0) {
+                words = [...newWords];
                 
-                <!-- Front Side: สีขาวบริสุทธิ์ (#FFFFFF) เด่นชัด พร้อมฟอนต์จีนสไตล์มาตรฐาน -->
-                <div class="card-front absolute inset-0 rounded-3xl bg-white p-6 flex flex-col justify-between items-center text-center border-2 border-sky-100 shadow-sm">
-                    <div class="w-full flex justify-between items-center text-xs text-sky-400">
-                        <span id="card-category-badge" class="bg-sky-100 text-sky-600 px-2.5 py-1 rounded-full font-semibold">HSK 1</span>
-                        <span id="card-counter" class="font-mono font-medium">1 / 10</span>
-                    </div>
+                // Add Custom option to category dropdown if not present
+                const select = document.getElementById('category-select');
+                if (!document.querySelector('option[value="custom"]')) {
+                    const opt = document.createElement('option');
+                    opt.value = "custom";
+                    opt.innerText = "คำศัพท์นำเข้า (Custom Sheet)";
+                    select.appendChild(opt);
+                }
+                select.value = "custom";
+                setMode('category');
+            }
+        }
 
-                    <!-- Chinese Character (Hanzi) - Font SimSun/Songti Style -->
-                    <div class="my-auto">
-                        <h2 id="card-hanzi" class="text-6xl md:text-7xl font-chinese text-slate-900 tracking-normal mb-2 font-bold">你好</h2>
-                        <p class="text-xs text-sky-400 flex items-center justify-center gap-1 opacity-80">
-                            <i class="fa-solid fa-hand-pointer"></i> แตะเพื่อพลิกดูความหมาย
-                        </p>
-                    </div>
-
-                    <div class="w-full flex justify-end">
-                        <button onclick="event.stopPropagation(); speakWord();" class="w-10 h-10 rounded-full bg-pink-50 hover:bg-pink-100 text-pink-500 flex items-center justify-center transition border border-pink-200 shadow-sm" title="ฟังเสียงอ่าน">
-                            <i class="fa-solid fa-volume-high"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Back Side -->
-                <div class="card-back absolute inset-0 rounded-3xl bg-gradient-to-b from-pink-50/60 via-white to-sky-50 p-6 flex flex-col justify-between items-center text-center border-2 border-pink-200">
-                    <div class="w-full flex justify-between items-center text-xs">
-                        <span id="card-pos" class="bg-pink-100 text-pink-600 px-2.5 py-1 rounded-full font-bold uppercase tracking-wider">phrase</span>
-                        <button onclick="event.stopPropagation(); speakWord();" class="text-pink-500 hover:text-pink-600 text-sm">
-                            <i class="fa-solid fa-volume-high"></i>
-                        </button>
-                    </div>
-
-                    <!-- Pinyin & Meaning -->
-                    <div class="my-auto space-y-2">
-                        <div id="card-pinyin" class="text-2xl font-bold text-pink-500 font-sans tracking-wide">nǐ hǎo</div>
-                        <div id="card-meaning" class="text-xl font-bold text-slate-800">สวัสดี</div>
-                        <div class="w-12 h-0.5 bg-pink-200 mx-auto my-2 rounded-full"></div>
-                        <p id="card-example" class="text-xs text-slate-500 italic px-2">"你好！很高兴认识你。" (สวัสดี! ยินดีที่ได้รู้จัก)</p>
-                    </div>
-
-                    <div class="text-[10px] text-sky-400">
-                        แตะอีกครั้งเพื่อกลับหน้าหลัก
-                    </div>
-                </div>
-
-            </div>
-        </div>
-
-        <!-- Smart Review Rating Controls (Visible only in 'ปักเป้าช่วยจำ' Mode) -->
-        <div id="review-controls" class="hidden grid grid-cols-3 gap-2 mt-4">
-            <button onclick="rateReview('hard')" class="py-2.5 px-2 bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 rounded-xl font-medium text-xs flex flex-col items-center gap-0.5 transition shadow-sm active:scale-95">
-                <span class="font-bold">ยาก</span>
-                <span class="text-[10px] text-red-400">ทบทวนเร็วๆ นี้</span>
-            </button>
-            <button onclick="rateReview('good')" class="py-2.5 px-2 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-700 rounded-xl font-medium text-xs flex flex-col items-center gap-0.5 transition shadow-sm active:scale-95">
-                <span class="font-bold">ปานกลาง</span>
-                <span class="text-[10px] text-amber-500">พอจำได้</span>
-            </button>
-            <button onclick="rateReview('easy')" class="py-2.5 px-2 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-600 rounded-xl font-medium text-xs flex flex-col items-center gap-0.5 transition shadow-sm active:scale-95">
-                <span class="font-bold">ง่าย</span>
-                <span class="text-[10px] text-emerald-500">แม่นยำแล้ว</span>
-            </button>
-        </div>
-
-        <!-- Standard Navigation Controls -->
-        <div id="standard-controls" class="flex items-center justify-between gap-4 mt-4">
-            <button onclick="prevCard()" class="flex-1 py-3 bg-white hover:bg-sky-50 text-sky-600 font-semibold rounded-2xl border-2 border-sky-200 shadow-sm transition active:scale-95 flex items-center justify-center gap-2">
-                <i class="fa-solid fa-chevron-left"></i> ก่อนหน้า
-            </button>
-            <button onclick="nextCard()" class="flex-1 py-3 bg-puffer-pink hover:bg-pink-600 text-white font-semibold rounded-2xl shadow-md hover:shadow-lg transition active:scale-95 flex items-center justify-center gap-2">
-                ถัดไป <i class="fa-solid fa-chevron-right"></i>
-            </button>
-        </div>
-
-    </main>
-
-    <!-- Footer -->
-    <footer class="text-center py-4 text-xs text-sky-400 border-t border-sky-100 bg-white/50">
-        <p>© 2026 pakkapaoponglom - Cute Chinese Flashcard App</p>
-    </footer>
-
-    <!-- Google Sheets Import Modal -->
-    <div id="gsheet-modal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border-2 border-sky-100 relative space-y-4">
-            <button onclick="toggleCustomSheetModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
-                <i class="fa-solid fa-xmark text-lg"></i>
-            </button>
-            <div class="flex items-center gap-2 text-sky-800">
-                <i class="fa-solid fa-file-csv text-xl text-pink-500"></i>
-                <h3 class="font-bold text-base">ดึงข้อมูลจาก Google Sheets</h3>
-            </div>
-            <p class="text-xs text-slate-500 leading-relaxed">
-                นำเข้าคำศัพท์จาก Google Sheets ของคุณเอง โดยเผยแพร่ไฟล์แบบ CSV (Publish to Web -> CSV) แล้วนำ URL มาวางด้านล่าง:
-            </p>
-            <div class="space-y-2">
-                <input type="url" id="sheet-url-input" placeholder="https://docs.google.com/spreadsheets/d/.../pub?output=csv" class="w-full text-xs p-3 border border-sky-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-400">
-                <p class="text-[10px] text-slate-400">คอลัมน์ใน Sheet: Hanzi, Pinyin, Meaning, POS (ตัวย่ออังกฤษ), Example</p>
-            </div>
-            <div class="flex gap-2 pt-2">
-                <button onclick="toggleCustomSheetModal()" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-semibold">ยกเลิก</button>
-                <button onclick="loadGoogleSheetData()" class="flex-1 py-2.5 bg-pink-500 hover:bg-pink-600 text-white rounded-xl text-xs font-semibold shadow-sm">โหลดข้อมูล</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Stats Modal -->
-    <div id="stats-modal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border-2 border-sky-100 relative space-y-4">
-            <button onclick="toggleStatsModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
-                <i class="fa-solid fa-xmark text-lg"></i>
-            </button>
-            <div class="flex items-center gap-2 text-sky-800">
-                <i class="fa-solid fa-chart-pie text-xl text-sky-500"></i>
-                <h3 class="font-bold text-base">สถิติการจำ (ปักเป้าช่วยจำ)</h3>
-            </div>
-            <div class="grid grid-cols-3 gap-2 text-center py-2">
-                <div class="bg-red-50 p-3 rounded-2xl border border-red-100">
-                    <div id="stat-hard-count" class="text-xl font-bold text-red-600">0</div>
-                    <div class="text-[10px] text-red-400">ยาก</div>
-                </div>
-                <div class="bg-amber-50 p-3 rounded-2xl border border-amber-100">
-                    <div id="stat-good-count" class="text-xl font-bold text-amber-600">0</div>
-                    <div class="text-[10px] text-amber-500">ปานกลาง</div>
-                </div>
-                <div class="bg-emerald-50 p-3 rounded-2xl border border-emerald-100">
-                    <div id="stat-easy-count" class="text-xl font-bold text-emerald-600">0</div>
-                    <div class="text-[10px] text-emerald-500">ง่าย</div>
-                </div>
-            </div>
-            <p class="text-xs text-slate-500 text-center">
-                บันทึกความก้าวหน้าอัตโนมัติในเครื่องของคุณ (localStorage)
-            </p>
-            <button onclick="resetProgress()" class="w-full py-2 bg-slate-100 hover:bg-red-50 hover:text-red-600 text-slate-500 rounded-xl text-xs font-semibold transition">
-                รีเซ็ตสถิติทั้งหมด
-            </button>
-        </div>
-    </div>
-
-    <!-- JavaScript Application Logic -->
-    <script>
-        // Sample Word Dataset with English POS Abbreviations
-        const defaultWords = [
-            { id: 1, hanzi: "你好", pinyin: "nǐ hǎo", meaning: "สวัสดี", pos: "phrase", example: "你好！很高兴认识你。", category: "hsk1" },
-            { id: 2, hanzi: "谢谢", pinyin: "xiè xie", meaning: "ขอบคุณ", pos: "v.", example: "谢谢你的帮助。", category: "hsk1" },
-            { id: 3, hanzi: "苹果", pinyin: "píng guǒ", meaning: "แอปเปิ้ล", pos: "n.", example: "我喜欢吃红苹果。", category: "food" },
-            { id: 4, hanzi: "喝水", pinyin: "hē shuǐ", meaning: "ดื่มน้ำ", pos: "v.", example: "天气很热，多喝水。", category: "food" },
-            { id: 5, hanzi: "学习", pinyin: "xué xí", meaning: "เรียน / ศึกษา", pos: "v.", example: "我在学习中文。", category: "daily" },
-            { id: 6, hanzi: "漂亮", pinyin: "piào liang", meaning: "สวย", pos: "adj.", example: "她穿衣服很漂亮。", category: "daily" },
-            { id: 7, hanzi: "非常", pinyin: "fēi cháng", meaning: "อย่างยิ่ง / มาก", pos: "adv.", example: "非常感谢你。", category: "daily" },
-            { id: 8, hanzi: "朋友", pinyin: "péng you", meaning: "เพื่อน", pos: "n.", example: "他是我的好朋友。", category: "daily" },
-            { id: 9, hanzi: "再见", pinyin: "zài jiàn", meaning: "ลาก่อน", pos: "phrase", example: "明天见，再见！", category: "hsk1" }
-        ];
-
-        let words = [...defaultWords];
-        let currentWordList = [...words];
-        let currentIndex = 0;
-        let currentMode = 'random'; // 'random', 'category', 'smartReview'
-        let isFlipped = false;
-
-        // Local Storage State for Review
-        let reviewData = JSON.parse(localStorage.getItem('pakkapao_review_data')) || {};
-
-        // DOM Elements
-        const flashcard = document.getElementById('flashcard');
-        const cardHanzi = document.getElementById('card-hanzi');
-        const cardPinyin = document.getElementById('card-pinyin');
-        const cardMeaning = document.getElementById('card-meaning');
-        const cardPos = document.getElementById('card-pos');
-        const cardExample = document.getElementById('card-example');
-        const cardCategoryBadge = document.getElementById('card-category-badge');
-        const cardCounter = document.getElementById('card-counter');
-        const mascotDialog = document.getElementById('mascot-dialog');
-
-        const mascotQuotes = [
-            "สู้ๆ น้า! ท่องกับ pakkapaoponglom ทุกวันเก่งขึ้นแน่นอน!",
-            "คำนี้จำได้ไหมเอ่ย? ลองทายในใจก่อนเปิดดูนะ!",
-            "น้องปักเป้าเป็นกำลังใจให้เสมอเลย!",
-            "ท่องศัพท์วันละนิด ชีวิตสดใสแน่นอน!",
-            "เก่งมากเลย! ลุยต่อคำถัดไปกัน!"
-        ];
-
-        // Initialize App
-       
+        // Initialize application on page load
+        window.onload = initApp;
+    </script>
+</body>
+            </html>
+                
