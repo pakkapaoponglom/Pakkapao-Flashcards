@@ -68,6 +68,7 @@
             <i class="fa-solid fa-chevron-left"></i> ย้อนกลับ
         </button>
         <div class="flex items-center gap-2 ml-auto">
+            <span id="sheet-status" class="text-[10px] bg-amber-100 text-amber-700 px-2.5 py-1 rounded-full font-bold">⏳ กำลังดึง Sheet...</span>
             <span class="text-xl">🐡</span>
             <span class="font-bold text-sky-800 text-sm">Pakkapao</span>
         </div>
@@ -298,14 +299,12 @@
 
     <!-- App Logic Script -->
     <script>
-        const defaultWords = [
-            { id: 1, hanzi: "你好", pinyin: "nǐ hǎo", meaning: "สวัสดี", pos: "phrase", example: "你好！很高兴认识你。", category: "hsk1" },
-            { id: 2, hanzi: "谢谢", pinyin: "xiè xie", meaning: "ขอบคุณ", pos: "v.", example: "谢谢你的帮助。", category: "hsk1" },
-            { id: 3, hanzi: "苹果", pinyin: "píng guǒ", meaning: "แอปเปิ้ล", pos: "n.", example: "我喜欢吃红苹果。", category: "ch_basic_1" },
-            { id: 4, hanzi: "喝水", pinyin: "hē shuǐ", meaning: "ดื่มน้ำ", pos: "v.", example: "天气很热，多喝水。", category: "ch_basic_1" },
-            { id: 5, hanzi: "学习", pinyin: "xué xí", meaning: "เรียน / ศึกษา", pos: "v.", example: "我在学习中文。", category: "ch_listen_1" },
-            { id: 6, hanzi: "漂亮", pinyin: "piào liang", meaning: "สวย", pos: "adj.", example: "她穿衣服很漂亮。", category: "ch_listen_1" }
-        ];
+        // =======================================================
+        // 1. นำ Web App URL ที่ก๊อปปี้มาจาก Apps Script มาวางตรงนี้ครับ
+        // =======================================================
+        const SHEET_API_URL = "https://script.google.com/macros/s/AKfycbwa7dFzUQB9xS0YwyPdJTyiu_4D90m2WZvwZ_2CA60zPZaBYjqfqKfL8lgGfoiy1BDYAg/exec";
+
+        const defaultWords = [ ];
 
         let words = [...defaultWords];
         let currentMode = 'flashcards'; // flashcards | dictation
@@ -318,6 +317,34 @@
 
         // Navigation History Stack
         let screenHistory = ['screen-home'];
+
+        // ฟังก์ชันดึงข้อมูลจาก Google Sheet อัตโนมัติ
+        async function loadWordsFromSheet() {
+            const tag = document.getElementById('sheet-status');
+            try {
+                const response = await fetch(SHEET_API_URL);
+                const data = await response.json();
+                
+                if (data && data.length > 0) {
+                    words = data.map((item, idx) => ({
+                        id: idx + 1,
+                        hanzi: item.w || item.hanzi || item.word || '',
+                        pinyin: item.p || item.pinyin || '',
+                        meaning: item.m || item.meaning || '',
+                        pos: item.pos || 'vocab',
+                        example: item.e || item.example || '',
+                        category: String(item.category || item.lesson || item.cat || '').trim()
+                    }));
+                    
+                    tag.innerText = `✓ พร้อมใช้ (${words.length} คำ)`;
+                    tag.className = "text-[10px] bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full font-bold";
+                }
+            } catch (err) {
+                console.error(" Sheet Error:", err);
+                tag.innerText = "⚠️ ใช้ข้อมูลสำรอง";
+                tag.className = "text-[10px] bg-rose-100 text-rose-700 px-2.5 py-1 rounded-full font-bold";
+            }
+        }
 
         function navigateTo(screenId, mode = null) {
             if (mode) currentMode = mode;
@@ -380,8 +407,11 @@
         }
 
         function startSessionWithCat(cat) {
-            let filtered = words.filter(w => w.category === cat);
-            if (filtered.length === 0) filtered = [...words];
+            let filtered = words.filter(w => String(w.category).trim() === String(cat).trim());
+            if (filtered.length === 0) {
+                alert(`ยังไม่มีข้อมูลคำศัพท์ในหมวด "${cat}" ใน Sheet ครับ`);
+                return;
+            }
             if (currentMode === 'dictation') {
                 const limit = parseInt(document.getElementById('word-amount-slider').value);
                 filtered = filtered.slice(0, limit);
@@ -535,7 +565,9 @@
             screenHistory = ['screen-home'];
             navigateTo('screen-setup', currentMode);
         }
+
+        // เริ่มดึงข้อมูลจาก Google Sheet ทันทีเมื่อเปิดเว็บ
+        loadWordsFromSheet();
     </script>
 </body>
 </html>
-
