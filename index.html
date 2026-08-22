@@ -68,7 +68,6 @@
             <i class="fa-solid fa-chevron-left"></i> ย้อนกลับ
         </button>
         <div class="flex items-center gap-2 ml-auto">
-            <span id="sheet-status" class="text-[10px] bg-amber-100 text-amber-700 px-2.5 py-1 rounded-full font-bold">⏳ กำลังดึง Sheet...</span>
             <span class="text-xl">🐡</span>
             <span class="font-bold text-sky-800 text-sm">Pakkapao</span>
         </div>
@@ -299,12 +298,268 @@
 
     <!-- App Logic Script -->
     <script>
-        // =======================================================
-        // 1. นำ Web App URL ที่ก๊อปปี้มาจาก Apps Script มาวางตรงนี้ครับ
-        // =======================================================
-        const SHEET_API_URL = "https://script.google.com/macros/s/AKfycbxDu3WIdZdjX4A2SPyrRB7kH9BciJjIU0q1CVoUIIzGnE1DrflhH-uC7I01L8gQAwL2/exec";
+        const defaultWords = [
 
-        const defaultWords = [ ];
+  { id: 1, hanzi: "入乡随俗", pinyin: "rù xiāng suí sú", meaning: "เข้าเมืองตาหลิ่วต้องหลิ่วตาตาม", pos: "idm.", example: "到了一个新的地方，我们应该入乡随俗。", category: "ch_basic_1" },
+  { id: 2, hanzi: "渐渐", pinyin: "jiànjiàn", meaning: "ค่อยๆ, ทีละเล็กทีละน้อย", pos: "adv.", example: "天气渐渐暖和起来了。", category: "ch_basic_1" },
+  { id: 3, hanzi: "迟到", pinyin: "chídào", meaning: "มาสาย, ถึงสาย", pos: "v.", example: "今天早上他上课迟到了。", category: "ch_basic_1" },
+  { id: 4, hanzi: "着", pinyin: "zhe", meaning: "อยู่, กำลัง...อยู่ (แสดงการต่อเนื่องของท่าทางหรือสถานะ)", pos: "part.", example: "门开着，请进。", category: "ch_basic_1" },
+  { id: 5, hanzi: "不好意思", pinyin: "bù hǎoyìsi", meaning: "รู้สึกเขินอาย, เกรงใจ<br>ขอโทษ, ขออภัย", pos: "adj.<br>v.", example: "让你等了这么久，真不好意思。<br>不好意思，请问洗手间在哪里？", category: "ch_basic_1" },
+  { id: 6, hanzi: "为了", pinyin: "wèile", meaning: "เพื่อ, เพื่อที่จะ", pos: "prep.", example: "为了学好汉语，他每天都努力练习。", category: "ch_basic_1" },
+  { id: 7, hanzi: "闹钟", pinyin: "nàozhōng", meaning: "นาฬิกาปลุก", pos: "n.", example: "我的闹钟每天早上六点响。", category: "ch_basic_1" },
+  { id: 8, hanzi: "懒虫", pinyin: "lǎnchóng", meaning: "คนขี้เกียจ, เจ้าตัวขี้เกียจ", pos: "n.", example: "快起床吧，你这个懒虫！", category: "ch_basic_1" },
+  { id: 9, hanzi: "该", pinyin: "gāi", meaning: "ควร, ถึงเวลาต้อง...", pos: "aux.", example: "时间不早了，我该走了。", category: "ch_basic_1" },
+  { id: 10, hanzi: "感谢", pinyin: "gǎnxie", meaning: "ขอบคุณ, ซาบซึ้งใจ", pos: "v.", example: "非常感谢你对我的帮助。", category: "ch_basic_1" },
+  { id: 11, hanzi: "打招呼", pinyin: "dǎ zhāohu", meaning: "ทักทาย, เอ่ยปากทักทาย", pos: "v.", example: "他主动走过来跟我打招呼。", category: "ch_basic_1" },
+  { id: 12, hanzi: "有些", pinyin: "yǒuxiē", meaning: "บางส่วน, บ้าง, มีบ้าง<br>ค่อนข้าง, นิดหน่อย", pos: "pron.<br>adv.", example: "这里有些人想去中国旅游。<br>我今天感觉有些累。", category: "ch_basic_1" },
+  { id: 13, hanzi: "问好", pinyin: "wènhǎo", meaning: "ฝากความคิดถึง, ทักทายไต่ถามสารทุกข์", pos: "v.", example: "请代我向你的父母问好。", category: "ch_basic_1" },
+  { id: 14, hanzi: "眼", pinyin: "ér", meaning: "และ, แต่, กลับ", pos: "conj.", example: "他喜欢唱歌，而我喜欢听歌。", category: "ch_basic_1" },
+  { id: 15, hanzi: "奇怪", pinyin: "qìguài", meaning: "แปลก, ประหลาด, น่าแปลกใจ", pos: "adj.", example: "这个房间里有一股奇怪的味道。", category: "ch_basic_1" },
+  { id: 16, hanzi: "下面", pinyin: "xiàmiàn", meaning: "ด้านล่าง, ถัดจากนี้, ต่อไปนี้", pos: "n.", example: "请大家看一下下面的内容。", category: "ch_basic_1" },
+  { id: 17, hanzi: "邻居", pinyin: "línjū", meaning: "เพื่อนบ้าน", pos: "n.", example: "我的邻居是一位热情的中国老师。", category: "ch_basic_1" },
+  { id: 18, hanzi: "对话", pinyin: "duìhuà", meaning: "บทสนทนา", pos: "n.", example: "听完这段对话，请回答问题。", category: "ch_basic_1" },
+  { id: 19, hanzi: "伞", pinyin: "sǎn", meaning: "ร่ม", pos: "n.", example: "外面下雨了，你带伞了吗？", category: "ch_basic_1" },
+  { id: 20, hanzi: "肯定", pinyin: "kěndìng", meaning: "แน่นอน, ชัวร์<br>ยืนยัน, ยอมรับ", pos: "adv.<br>v.", example: "他明天肯定会来上课的。<br>大家都肯定了他的工作成绩。", category: "ch_basic_1" },
+  { id: 21, hanzi: "却", pinyin: "què", meaning: "แต่, กลับ...", pos: "adv.", example: "他虽然很累，却一直坚持工作。", category: "ch_basic_1" },
+  { id: 22, hanzi: "挺", pinyin: "tǐng", meaning: "...มาก, ทีเดียว", pos: "adv.", example: "这里的环境挺干净的。", category: "ch_basic_1" },
+  { id: 23, hanzi: "亲切", pinyin: "qīnqiè", meaning: "สนิทสนม, เป็นกันเอง, อบอุ่น", pos: "adj.", example: "王老师对学生非常亲切。", category: "ch_basic_1" },
+  { id: 24, hanzi: "熟人", pinyin: "shúrén", meaning: "คนรู้จัก, คนคุ้นเคย", pos: "n.", example: "路上我遇到了一个熟人。", category: "ch_basic_1" },
+  { id: 25, hanzi: "回答", pinyin: "huídá", meaning: "ตอบ<br>คำตอบ", pos: "v.<br>n.", example: "请回答我的问题。<br>这个回答非常正确。", category: "ch_basic_1" },
+  { id: 26, hanzi: "成语", pinyin: "chéngyǔ", meaning: "สำนวน, สุภาษิต", pos: "n.", example: "中国有很多有意思的成语。", category: "ch_basic_1" },
+  { id: 27, hanzi: "适应", pinyin: "shìyìng", meaning: "ปรับตัวให้เข้ากับ...", pos: "v.", example: "我已经适应了这里的生活。", category: "ch_basic_1" },
+  { id: 28, hanzi: "风俗", pinyin: "fēngsú", meaning: "ขนบธรรมเนียม, ประเพณี", pos: "n.", example: "每个国家都有不同的节日风俗。", category: "ch_basic_1" },
+  { id: 29, hanzi: "毕业", pinyin: "bìyè", meaning: "เรียนจบ, สำเร็จการศึกษา", pos: "v.", example: "我今年七月大学毕业。", category: "ch_basic_2" },
+  { id: 30, hanzi: "恭喜", pinyin: "gōngxǐ", meaning: "ยินดีด้วย, ขอแสดงความยินดี", pos: "v.", example: "恭喜你大学毕业！", category: "ch_basic_2" },
+  { id: 31, hanzi: "关系", pinyin: "guānxì", meaning: "ความสัมพันธ์", pos: "n.", example: "我们两人的关系非常好。", category: "ch_basic_2" },
+  { id: 32, hanzi: "从来", pinyin: "cónglái", meaning: "แต่ไหนแต่ไรมา, ตลอดมา (มักใช้ในประโยคปฏิเสธ)", pos: "adv.", example: "我从来不抽烟。", category: "ch_basic_2" },
+  { id: 33, hanzi: "害怕", pinyin: "hàipà", meaning: "กลัว", pos: "v.", example: "妹妹很害怕打针。", category: "ch_basic_2" },
+  { id: 34, hanzi: "病毒", pinyin: "bìngdú", meaning: "ไวรัส, เชื้อไวรัส", pos: "n.", example: "电脑里有很多病毒。", category: "ch_basic_2" },
+  { id: 35, hanzi: "哦", pinyin: "ò", meaning: "อ้อ, อ๋อ", pos: "int.", example: "哦，我明白你的意思了。", category: "ch_basic_2" },
+  { id: 36, hanzi: "靠", pinyin: "kào", meaning: "พิง, แอบ, พึ่งพา", pos: "v.", example: "他的书桌靠着窗户。", category: "ch_basic_2" },
+  { id: 37, hanzi: "墙", pinyin: "qiáng", meaning: "กำแพง, ผนัง", pos: "n.", example: "墙上挂着一张地图。", category: "ch_basic_2" },
+  { id: 38, hanzi: "摆", pinyin: "bǎi", meaning: "วาง, จัดวาง", pos: "v.", example: "桌子上摆着一些水果。", category: "ch_basic_2" },
+  { id: 39, hanzi: "堆", pinyin: "duī", meaning: "กอง (ลักษณนาม)<br>กอง, สุม", pos: "m.<br>v.", example: "地上有一堆衣服。<br>别把书堆在地上。", category: "ch_basic_2" },
+  { id: 40, hanzi: "脏", pinyin: "zāng", meaning: "สกปรก", pos: "adj.", example: "环境很脏。", category: "ch_basic_2" },
+  { id: 41, hanzi: "旧", pinyin: "jiù", meaning: "เก่า", pos: "adj.", example: "这本书已经很旧了。", category: "ch_basic_2" },
+  { id: 42, hanzi: "乱七八糟", pinyin: "luànqībāzāo", meaning: "รก, ยุ่งเหยิง, กระจัดกระจาย", pos: "adj.", example: "他的房间里乱七八糟的。", category: "ch_basic_2" },
+  { id: 43, hanzi: "墙角", pinyin: "qiángjiǎo", meaning: "มุมห้อง, มุมกำแพง", pos: "n.", example: "墙角放着一个垃圾桶。", category: "ch_basic_2" },
+  { id: 44, hanzi: "垃圾", pinyin: "lājī", meaning: "ขยะ", pos: "n.", example: "请把垃圾扔到外面。", category: "ch_basic_2" },
+  { id: 45, hanzi: "箱", pinyin: "xiāng", meaning: "กล่อง, ลัง", pos: "n.", example: "房间里有一个大木箱。", category: "ch_basic_2" },
+  { id: 46, hanzi: "空", pinyin: "kōng", meaning: "ว่าง, ว่างเปล่า", pos: "adj.", example: "那个瓶子是空的。", category: "ch_basic_2" },
+  { id: 47, hanzi: "食品", pinyin: "shípǐn", meaning: "อาหาร, ผลิตภัณฑ์อาหาร", pos: "n.", example: "超市里有很多绿色食品。", category: "ch_basic_2" },
+  { id: 48, hanzi: "袋", pinyin: "dài", meaning: "ถุง", pos: "n.", example: "妈妈买了一袋大米。", category: "ch_basic_2" },
+  { id: 49, hanzi: "酸奶", pinyin: "suānnǎi", meaning: "โยเกิร์ต", pos: "n.", example: "妹妹每天早上喝一杯酸奶。", category: "ch_basic_2" },
+  { id: 50, hanzi: "盒", pinyin: "hé", meaning: "กล่อง (ขนาดเล็ก), กระปุก", pos: "n.", example: "桌上有一盒巧克力。", category: "ch_basic_2" },
+  { id: 51, hanzi: "袜子", pinyin: "wàzi", meaning: "ถุงเท้า", pos: "n.", example: "他的袜子上有一个小洞。", category: "ch_basic_2" },
+  { id: 52, hanzi: "废纸", pinyin: "fèizhǐ", meaning: "กระดาษเสีย, เศษกระดาษ", pos: "n.", example: "垃圾箱里装满了废纸。", category: "ch_basic_2" },
+  { id: 53, hanzi: "衣柜", pinyin: "yīguì", meaning: "ตู้เสื้อผ้า", pos: "n.", example: "衣柜里挂着许多衣服。", category: "ch_basic_2" },
+  { id: 54, hanzi: "不过", pinyin: "búguò", meaning: "แต่, เพียงแต่", pos: "conj.", example: "我很想去，不过今天没有时间。", category: "ch_basic_2" },
+  { id: 55, hanzi: "挂", pinyin: "guà", meaning: "แขวน, ห้อย", pos: "v.", example: "墙上挂着一张照片。", category: "ch_basic_2" },
+  { id: 56, hanzi: "自由", pinyin: "zìyóu", meaning: "อิสรภาพ, เสรีภาพ<br>อิสระ", pos: "n.<br>adj.", example: "人人都有追求自由的权利。<br>他觉得在学校生活很自由。", category: "ch_basic_2" },
+  { id: 57, hanzi: "小心", pinyin: "xiǎoxīn", meaning: "ระวัง<br>ระมัดระวัง", pos: "v.<br>adj.", example: "小心，路很滑。<br>他做事非常小心。", category: "ch_basic_2" },
+  { id: 58, hanzi: "消毒", pinyin: "xiāodú", meaning: "ฆ่าเชื้อ, ฆ่าเชื้อโรค", pos: "v.", example: "医生正在给手术刀消毒。", category: "ch_basic_2" },
+  { id: 59, hanzi: "环境", pinyin: "huánjìng", meaning: "สิ่งแวดล้อม, สภาพแวดล้อม", pos: "n.", example: "这里的学习环境非常好。", category: "ch_basic_2" },
+  { id: 60, hanzi: "保护", pinyin: "bǎohù", meaning: "ปกป้อง, คุ้มครอง, อนุรักษ์", pos: "v.", example: "我们应该保护环境。", category: "ch_basic_2" },
+  { id: 61, hanzi: "辣椒", pinyin: "làjiāo", meaning: "พริก", pos: "n.", example: "我不习惯吃太辣的辣椒。", category: "ch_basic_3" },
+  { id: 62, hanzi: "市场", pinyin: "shìchǎng", meaning: "ตลาด", pos: "n.", example: "妈妈每天早上都去市场买菜。", category: "ch_basic_3" },
+  { id: 63, hanzi: "经验", pinyin: "jīngyàn", meaning: "ประสบการณ์", pos: "n.", example: "他在大公司工作，非常有经验。", category: "ch_basic_3" },
+  { id: 64, hanzi: "篮子", pinyin: "lánzi", meaning: "ตะกร้า", pos: "n.", example: "篮子里装满了新鲜的红苹果。", category: "ch_basic_3" },
+  { id: 65, hanzi: "新鲜", pinyin: "xīnxian", meaning: "สด, สดใหม่", pos: "adj.", example: "这里的蔬菜非常新鲜。", category: "ch_basic_3" },
+  { id: 66, hanzi: "相信", pinyin: "xiāngxìn", meaning: "เชื่อ, เชื่อมั่น", pos: "v.", example: "我相信เขา一定会来的。", category: "ch_basic_3" },
+  { id: 67, hanzi: "顾客", pinyin: "gùkè", meaning: "ลูกค้า", pos: "n.", example: "这家超市每天都有很多顾客。", category: "ch_basic_3" },
+  { id: 68, hanzi: "辣", pinyin: "là", meaning: "เผ็ด", pos: "adj.", example: "这道川菜特别辣，我很喜欢吃。", category: "ch_basic_3" },
+  { id: 69, hanzi: "甜", pinyin: "tián", meaning: "หวาน", pos: "adj.", example: "西瓜甜甜的，非常好吃。", category: "ch_basic_3" },
+  { id: 70, hanzi: "摇头", pinyin: "yáo tóu", meaning: "ส่ายหัว, ส่ายศีรษะ", pos: "v.", example: "听了我的话，他只是摇了摇头。", category: "ch_basic_3" },
+  { id: 71, hanzi: "姑娘", pinyin: "gūniang", meaning: "หญิงสาว, เด็กสาว", pos: "n.", example: "那个穿红衣服的姑娘很聪明。", category: "ch_basic_3" },
+  { id: 72, hanzi: "赶紧", pinyin: "gǎnjǐn", meaning: "รีบ, รีบร้อน, โดยด่วน", pos: "adv.", example: "下雨了，我们赶紧回房间吧。", category: "ch_basic_3" },
+  { id: 73, hanzi: "怕", pinyin: "pà", meaning: "กลัว, เกรงว่า", pos: "v.", example: "妹妹很怕狗。", category: "ch_basic_3" },
+  { id: 74, hanzi: "难过", pinyin: "nánguò", meaning: "รู้สึกไม่ดี, เป็นทุกข์<br>เสียใจ, เศร้าใจ", pos: "v.<br>adj.", example: "听到这个坏消息，他心里很难过。", category: "ch_basic_3" },
+  { id: 75, hanzi: "想不通", pinyin: "xiǎng bu tōng", meaning: "คิดไม่ตก, คิดไม่ทะลุ, ไม่เข้าใจ", pos: "v.", example: "这件事太奇怪了，我怎么也想不通。", category: "ch_basic_3" },
+  { id: 76, hanzi: "味道", pinyin: "wèidao", meaning: "รสชาติ, กลิ่น", pos: "n.", example: "妈妈做的菜味道非常地道。", category: "ch_basic_3" },
+  { id: 77, hanzi: "既……也……", pinyin: "jì......yě......", meaning: "ทั้ง...และ...", pos: "conj.", example: "这种苹果既好看也好吃。", category: "ch_basic_3" },
+  { id: 78, hanzi: "中间", pinyin: "zhōngjiān", meaning: "ตรงกลาง, ระหว่างกลาง", pos: "n.", example: "我们的学校在超市和公园的中间。", category: "ch_basic_3" },
+  { id: 79, hanzi: "香", pinyin: "xiāng", meaning: "หอม, อร่อย", pos: "adj.", example: "厨房里飘来很香的味道。", category: "ch_basic_3" },
+  { id: 80, hanzi: "奇迹", pinyin: "qíjì", meaning: "ปาฏิหาริย์, สิ่งมหัศจรรย์", pos: "n.", example: "只要坚持不懈地努力，就会有奇迹。", category: "ch_basic_3" },
+  { id: 81, hanzi: "发生", pinyin: "fāshēng", meaning: "เกิดขึ้น", pos: "v.", example: "刚才在校门口发生了什么事？", category: "ch_basic_3" },
+  { id: 82, hanzi: "四川", pinyin: "Sìchuān", meaning: "มณฑลเสฉวน", pos: "pn.", example: "四川是一个美丽的地方。", category: "ch_basic_3" },
+  { id: 83, hanzi: "山东", pinyin: "Shāndōng", meaning: "มณฑลซานตง", pos: "pn.", example: "林老师来自中国山东。", category: "ch_basic_3" },
+  { id: 84, hanzi: "约会", pinyin: "yuēhuì", meaning: "นัดหมาย, การนัดพบ<br>นัดพบ, นัดเดท", pos: "n.<br>v.", example: "今天晚上我有一个约会。<br>我们星期天约会吧。", category: "ch_basic_4" },
+  { id: 85, hanzi: "缘分", pinyin: "yuánfèn", meaning: "บุพเพสันนิวาส, พรหมลิขิต, โชคชะตาที่ทำให้พบกัน", pos: "n.", example: "我们能在这里相遇真是缘分。", category: "ch_basic_4" },
+  { id: 86, hanzi: "流行", pinyin: "liúxíng", meaning: "แพร่หลาย, ระบาด<br>ฮิต, เป็นที่นิยม", pos: "v.<br>adj.", example: "这种感冒最近很流行。<br>这首歌在年轻人中非常流行。", category: "ch_basic_4" },
+  { id: 87, hanzi: "功夫", pinyin: "gōngfu", meaning: "กังฟู, ฝีมือ, เวลาและแรงงาน", pos: "n.", example: "他从小就学习中国功夫。", category: "ch_basic_4" },
+  { id: 88, hanzi: "不但", pinyin: "búdàn", meaning: "ไม่เพียงแต่", pos: "conj.", example: "他不但会说汉语，还会说英语。", category: "ch_basic_4" },
+  { id: 89, hanzi: "而且", pinyin: "érqiě", meaning: "แถมยัง, และยัง...อีกด้วย", pos: "conj.", example: "这件衣服不但漂亮，而且很便宜。", category: "ch_basic_4" },
+  { id: 90, hanzi: "做人", pinyin: "zuòrén", meaning: "การประพฤติตน, การวางตัวเป็นมนุษย์", pos: "v.", example: "老师教了我们很多做人的道理。", category: "ch_basic_4" },
+  { id: 91, hanzi: "道理", pinyin: "dàolǐ", meaning: "เหตุผล, หลักธรรม", pos: "n.", example: "你说的话非常有道理。", category: "ch_basic_4" },
+  { id: 92, hanzi: "挣", pinyin: "zhèng", meaning: "หา (เงิน)", pos: "v.", example: "爸爸每天辛苦工作挣钱。", category: "ch_basic_4" },
+  { id: 93, hanzi: "出息", pinyin: "chūxi", meaning: "อนาคตที่ดี, ความก้าวหน้า", pos: "n.", example: "大家都希望这个孩子长大后有出息。", category: "ch_basic_4" },
+  { id: 94, hanzi: "选择", pinyin: "xuǎnzé", meaning: "เลือก<br>ทางเลือก", pos: "v.<br>n.", example: "我不知道该选择哪一个。<br>这是一个很好的选择。", category: "ch_basic_4" },
+  { id: 95, hanzi: "后悔", pinyin: "hòuhuǐ", meaning: "เสียใจภายหลัง, นึกเสียดาย", pos: "v.", example: "我后悔没有听爸爸的话。", category: "ch_basic_4" },
+  { id: 96, hanzi: "交（朋友）", pinyin: "jiāo (péngyou)", meaning: "คบ (เพื่อน), ทำความรู้จัก (เพื่อน)", pos: "v.", example: "我在中国交了很多好朋友。", category: "ch_basic_4" },
+  { id: 97, hanzi: "文化", pinyin: "wénhuà", meaning: "วัฒนธรรม", pos: "n.", example: "我对中国文化非常感兴趣。", category: "ch_basic_4" },
+  { id: 98, hanzi: "元素", pinyin: "yuánsù", meaning: "ส่วนประกอบ, ธาตุ, ปัจจัย, กลิ่นอาย", pos: "n.", example: "他的画里有很多中国元素。", category: "ch_basic_4" },
+  { id: 99, hanzi: "唐装", pinyin: "tángzhuāng", meaning: "ชุดถัง, ชุดจีนโบราณแบบประยุกต์", pos: "n.", example: "爷爷今天穿着一身红色的唐装。", category: "ch_basic_4" },
+  { id: 100, hanzi: "学费", pinyin: "xuéfèi", meaning: "ค่าเล่าเรียน, ค่าเทอม", pos: "n.", example: "他的学费是他自己打工挣的。", category: "ch_basic_4" },
+  { id: 101, hanzi: "因此", pinyin: "yīncǐ", meaning: "ดังนั้น, เพราะฉะนั้น", pos: "conj.", example: "他今天生病了，因此没来上课。", category: "ch_basic_4" },
+  { id: 102, hanzi: "认真", pinyin: "rènzhēn", meaning: "จริงจัง, ตั้งใจ, รอบคอบ", pos: "adj.", example: "他学习非常认真。", category: "ch_basic_4" },
+  { id: 103, hanzi: "厨师", pinyin: "chúshī", meaning: "พ่อครัว, เชฟ", pos: "n.", example: "我的叔叔是一名学校的厨师。", category: "ch_basic_4" },
+  { id: 104, hanzi: "流", pinyin: "liú", meaning: "ไหล", pos: "v.", example: "他的眼泪流了下来。", category: "ch_basic_4" },
+  { id: 105, hanzi: "口水", pinyin: "kǒushuǐ", meaning: "น้ำลาย", pos: "n.", example: "看到好吃的，他流了口水。", category: "ch_basic_4" },
+  { id: 106, hanzi: "导游", pinyin: "dǎoyóu", meaning: "ไกด์, มัคคุเทศก์<br>นำเที่ยว, เป็นไกด์นำเที่ยว", pos: "n.<br>v.", example: "他的工作是当导游。<br>他明天导游我们去参观故宫。", category: "ch_basic_4" },
+  { id: 107, hanzi: "其实", pinyin: "qíshí", meaning: "จริงๆ แล้ว, แท้ที่จริง", pos: "adv.", example: "我看似不会，其实我知道答案。", category: "ch_basic_4" },
+  { id: 108, hanzi: "娶", pinyin: "qǔ", meaning: "แต่งงาน (ผู้ชายแต่งผู้หญิงเข้าบ้าน), รับเจ้าสาว", pos: "v.", example: "我想娶她为妻。", category: "ch_basic_5" },
+  { id: 109, hanzi: "洋", pinyin: "yáng", meaning: "เกี่ยวกับต่างประเทศ, แบบตะวันตก", pos: "adj.", example: "这是一个洋娃娃。", category: "ch_basic_5" },
+  { id: 110, hanzi: "媳妇", pinyin: "xífù", meaning: "ลูกสะใภ้, ภรรยา", pos: "n.", example: "他的儿媳妇非常孝顺。", category: "ch_basic_5" },
+  { id: 111, hanzi: "饭菜", pinyin: "fàncài", meaning: "อาหาร", pos: "n.", example: "妈妈做的饭菜很好吃。", category: "ch_basic_5" },
+  { id: 112, hanzi: "游览", pinyin: "yóulǎn", meaning: "เที่ยวชม, เยี่ยมชม", pos: "v.", example: "我们明天去游览长城。", category: "ch_basic_5" },
+  { id: 113, hanzi: "皇帝", pinyin: "huángdì", meaning: "จักรพรรดิ, ฮ่องเต้", pos: "n.", example: "中国古代有很多皇帝。", category: "ch_basic_5" },
+  { id: 114, hanzi: "妻子", pinyin: "qīzi", meaning: "ภรรยา", pos: "n.", example: "他的妻子是一名医生。", category: "ch_basic_5" },
+  { id: 115, hanzi: "开玩笑", pinyin: "kāi wánxiào", meaning: "ล้อเล่น, พูดเล่น", pos: "v.", example: "我只是在开玩笑，你别生气。", category: "ch_basic_5" },
+  { id: 116, hanzi: "选中", pinyin: "xuǎnzhòng", meaning: "เลือกสรร, เลือกได้ตรงใจ, ได้รับเลือก", pos: "v.", example: "他被公司选中去国外工作。", category: "ch_basic_5" },
+  { id: 117, hanzi: "选", pinyin: "xuǎn", meaning: "เลือก", pos: "v.", example: "我不知道该选哪一个。", category: "ch_basic_5" },
+  { id: 118, hanzi: "中", pinyin: "zhòng", meaning: "โดน, ถูก (เป้าหมาย, รางวัล), ตรงกับ", pos: "v.", example: "那个箭射中了目标。", category: "ch_basic_5" },
+  { id: 119, hanzi: "尊重", pinyin: "zūnzhòng", meaning: "เคารพ, ให้เกียรติ", pos: "v.", example: "我们应该尊重别人的选择。", category: "ch_basic_5" },
+  { id: 120, hanzi: "妇女", pinyin: "fùnǚ", meaning: "สตรี, ผู้หญิง", pos: "n.", example: "现代妇女有了更多的权利。", category: "ch_basic_5" },
+  { id: 121, hanzi: "改", pinyin: "gǎi", meaning: "แก้ไข, เปลี่ยน, ปรับปรุง", pos: "v.", example: "我想改一下这个方案。", category: "ch_basic_5" },
+  { id: 122, hanzi: "式", pinyin: "shì", meaning: "รูปแบบ, สไตล์, แบบ", pos: "n.", example: "我很喜欢中式建筑。", category: "ch_basic_5" },
+  { id: 123, hanzi: "早餐", pinyin: "zǎocān", meaning: "อาหารเช้า", pos: "n.", example: "每天吃早餐对身体好。", category: "ch_basic_5" },
+  { id: 124, hanzi: "豆浆", pinyin: "dòujiāng", meaning: "น้ำเต้าหู้, น้ำนมถั่วเหลือง", pos: "n.", example: "我早上喜欢喝热豆浆。", category: "ch_basic_5" },
+  { id: 125, hanzi: "油条", pinyin: "yóutiáo", meaning: "ปาท่องโก๋", pos: "n.", example: "豆浆和油条是绝配。", category: "ch_basic_5" },
+  { id: 126, hanzi: "不得了", pinyin: "bù déliǎo", meaning: "อย่างยิ่ง, เหลือเกิน<br>แย่แล้ว, ร้ายแรง", pos: "adj.<br>adv.", example: "天气热得不得了。<br>这下可不得了。", category: "ch_basic_5" },
+  { id: 127, hanzi: "噎", pinyin: "yē", meaning: "สำลัก, ติดคอ", pos: "v.", example: "别吃太快，小心噎着。", category: "ch_basic_5" },
+  { id: 128, hanzi: "指", pinyin: "zhǐ", meaning: "ชี้, ระบุ, หมายถึง", pos: "v.", example: "他用手指着前面的路。", category: "ch_basic_5" },
+  { id: 129, hanzi: "蘸", pinyin: "zhàn", meaning: "จิ้ม, จุ่ม", pos: "v.", example: "吃饺子要蘸一点儿醋。", category: "ch_basic_5" },
+  { id: 130, hanzi: "吃惊", pinyin: "chī jīng", meaning: "ตกใจ, ประหลาดใจ", pos: "v.", example: "听到这个消息，大家都非常吃惊。", category: "ch_basic_5" },
+  { id: 131, hanzi: "婆婆", pinyin: "pópo", meaning: "แม่สามี, ยาย", pos: "n.", example: "她的婆婆对她非常好。", category: "ch_basic_5" },
+  { id: 132, hanzi: "公公", pinyin: "gōnggong", meaning: "พ่อสามี, ตา", pos: "n.", example: "她的公公喜欢喝茶。", category: "ch_basic_5" },
+  { id: 133, hanzi: "骗人", pinyin: "piàn rén", meaning: "หลอกลวง, พูดโกหก, หลอกคนอื่น", pos: "v.", example: "撒谎骗人是不对的。", category: "ch_basic_5" },
+  { id: 134, hanzi: "一切", pinyin: "yíqiè", meaning: "ทุกอย่าง, ทั้งหมด", pos: "pron.", example: "这里的一切都很好。", category: "ch_basic_6" },
+  { id: 135, hanzi: "电子邮箱", pinyin: "diànzǐ yóuxiāng", meaning: "อีเมล, กล่องจดหมายอิเล็กทรอนิกส์", pos: "n.", example: "请把你的电子邮箱告诉我。", category: "ch_basic_6" },
+  { id: 136, hanzi: "极了", pinyin: "jí le", meaning: "อย่างยิ่ง, ...เหลือเกิน", pos: "adv.", example: "妈妈做的菜好吃极了。", category: "ch_basic_6" },
+  { id: 137, hanzi: "情况", pinyin: "qíngkuàng", meaning: "สถานการณ์, สภาพ, เรื่องราว", pos: "n.", example: "这里的具体情况怎么样？", category: "ch_basic_6" },
+  { id: 138, hanzi: "网络", pinyin: "wǎngluò", meaning: "เครือข่าย, อินเทอร์เน็ต", pos: "n.", example: "这里的网络速度非常快。", category: "ch_basic_6" },
+  { id: 139, hanzi: "好像", pinyin: "hǎoxiàng", meaning: "ดูเหมือนว่า, คล้ายกับว่า", pos: "v.", example: "他今天好像不太舒服。", category: "ch_basic_6" },
+  { id: 140, hanzi: "放心", pinyin: "fàng xīn", meaning: "วางใจ, หมดห่วง", pos: "v.", example: "你放心，我会照顾好他的。", category: "ch_basic_6" },
+  { id: 141, hanzi: "惯", pinyin: "guàn", meaning: "เคยชิน, คุ้นเคย", pos: "v.", example: "我已经吃惯了中国菜。", category: "ch_basic_6" },
+  { id: 142, hanzi: "可惜", pinyin: "kěxī", meaning: "น่าเสียดาย", pos: "adj.", example: "这件衣服很好看，可惜太贵了。", category: "ch_basic_6" },
+  { id: 143, hanzi: "发", pinyin: "fā", meaning: "ส่ง (เมล, ข้อความ)", pos: "v.", example: "我刚刚给他发了一封电子邮件。", category: "ch_basic_6" },
+  { id: 144, hanzi: "祝", pinyin: "zhù", meaning: "ขอให้, อวยพร", pos: "v.", example: "祝你生日快乐！", category: "ch_basic_6" },
+  { id: 145, hanzi: "笑脸", pinyin: "xiàoliǎn", meaning: "ใบหน้ายิ้มแย้ม, รอยยิ้ม", pos: "n.", example: "她的脸上总是带着温暖的笑脸。", category: "ch_basic_6" },
+  { id: 146, hanzi: "声音", pinyin: "shēngyīn", meaning: "เสียง", pos: "n.", example: "我听到了唱歌的声音。", category: "ch_basic_6" },
+  { id: 147, hanzi: "闻", pinyin: "wén", meaning: "ดม, ได้กลิ่น", pos: "v.", example: "你闻闻，这是什么味道？", category: "ch_basic_6" },
+  { id: 148, hanzi: "香味", pinyin: "xiangwèi", meaning: "กลิ่นหอม", pos: "n.", example: "房间里飘着花儿的香味。", category: "ch_basic_6" },
+  { id: 149, hanzi: "家乡", pinyin: "jiāxiāng", meaning: "บ้านเกิด", pos: "n.", example: "我的家乡在一个美丽的城市。", category: "ch_basic_6" },
+  { id: 150, hanzi: "炒", pinyin: "chǎo", meaning: "ผัด", pos: "v.", example: "爸爸最拿手的是炒土豆丝。", category: "ch_basic_6" },
+  { id: 151, hanzi: "搬", pinyin: "bān", meaning: "ย้าย (บ้าน, ของ)", pos: "v.", example: "我下个星期打算搬家。", category: "ch_basic_6" },
+  { id: 152, hanzi: "秘密", pinyin: "mìmì", meaning: "ความลับ", pos: "n.", example: "这是一个不能说出去的秘密。", category: "ch_basic_6" },
+  { id: 153, hanzi: "聪明", pinyin: "cōngming", meaning: "ฉลาด, มีไหวพริบ", pos: "adj.", example: "这个孩子非常聪明。", category: "ch_basic_6" },
+  { id: 154, hanzi: "健康", pinyin: "jiànkāng", meaning: "แข็งแรง, มีสุขภาพดี", pos: "adj.", example: "祝你身体健康！", category: "ch_basic_6" },
+  { id: 155, hanzi: "猜", pinyin: "cāi", meaning: "เดา, ทาย", pos: "v.", example: "你猜猜我买了什么？", category: "ch_listen_1" },
+  { id: 156, hanzi: "一定", pinyin: "yídìng", meaning: "แน่นอน<br>ที่แน่นอน, แน่นอน", pos: "adv.<br>adj.", example: "我明天一定会去。<br>这是一个不一定的结果。", category: "ch_listen_1" },
+  { id: 157, hanzi: "聪明", pinyin: "cōngming", meaning: "ฉลาด, มีไหวพริบ", pos: "adj.", example: "这个孩子非常聪明。", category: "ch_listen_1" },
+  { id: 158, hanzi: "越来越", pinyin: "yuè lái yuè", meaning: "นับวันยิ่ง..., ยิ่งๆ ขึ้นไป", pos: "adv.", example: "他的汉语说得越来越流利了。", category: "ch_listen_1" },
+  { id: 159, hanzi: "希望", pinyin: "xīwàng", meaning: "หวัง, ปรารถนา<br>ความหวัง", pos: "v.<br>n.", example: "我希望明天是个晴天。<br>孩子是家庭的希望。", category: "ch_listen_1" },
+  { id: 160, hanzi: "做", pinyin: "zuò", meaning: "ทำ, เป็น, ทำหน้าที่เป็น", pos: "v.", example: "他在公司里做翻译。", category: "ch_listen_1" },
+  { id: 161, hanzi: "翻译", pinyin: "fānyì", meaning: "แปล<br>นักแปล, ล่าม", pos: "v.<br>n.", example: "请帮我翻译这句话。<br>他的职业是一名翻译。", category: "ch_listen_1" },
+  { id: 162, hanzi: "公司", pinyin: "gōngsī", meaning: "บริษัท", pos: "n.", example: "这是一家很有名的大公司。", category: "ch_listen_1" },
+  { id: 163, hanzi: "派", pinyin: "pài", meaning: "ส่ง (คน), มอบหมาย", pos: "v.", example: "公司派他去中国工作。", category: "ch_listen_1" },
+  { id: 164, hanzi: "先", pinyin: "xiān", meaning: "ก่อน, เป็นอันดับแรก", pos: "adv.", example: "我们先吃饭，然后再去看电影。", category: "ch_listen_1" },
+  { id: 165, hanzi: "然后", pinyin: "ránhòu", meaning: "หลังจากนั้น, แล้วค่อย", pos: "conj.", example: "先洗手，然后才能吃东西。", category: "ch_listen_1" },
+  { id: 166, hanzi: "发音", pinyin: "fāyīn", meaning: "ออกเสียง<br>การออกเสียง", pos: "v.<br>n.", example: "老师教我们怎么发音。<br>他的汉语发音非常标准。", category: "ch_listen_1" },
+  { id: 167, hanzi: "关照", pinyin: "guānzhào", meaning: "ดูแล, เอาใจใส่, ช่วยเหลือ", pos: "v.", example: "以后请大家多多关照。", category: "ch_listen_1" },
+  { id: 168, hanzi: "同屋", pinyin: "tóngwū", meaning: "เพื่อนร่วมห้อง, รูมเมท", pos: "n.", example: "我的同屋是一个热情的人。", category: "ch_listen_1" },
+  { id: 169, hanzi: "一边……一边……", pinyin: "yìbiān...yìbiān...", meaning: "ไปด้วย...ไปด้วย, ทำสองสิ่งพร้อมๆ กัน", pos: "conj.", example: "他喜欢一边吃饭一边看电视。", category: "ch_listen_1" },
+  { id: 170, hanzi: "京剧", pinyin: "jīngjù", meaning: "งิ้วปักกิ่ง", pos: "n.", example: "爷爷非常喜欢听京剧。", category: "ch_listen_1" },
+  { id: 171, hanzi: "从来", pinyin: "cónglái", meaning: "แต่ไหนแต่ไรมา, ตลอดมา (มักใช้ในประโยคปฏิเสธ)", pos: "adv.", example: "我从来没有去过中国。", category: "ch_listen_1" },
+  { id: 172, hanzi: "段", pinyin: "duàn", meaning: "ตอน, ช่วง, บท, ย่อหน้า (ลักษณนาม)", pos: "m.", example: "这段对话很有意思。", category: "ch_listen_1" },
+  { id: 173, hanzi: "职员", pinyin: "zhíyuán", meaning: "พนักงาน, เจ้าหน้าที่", pos: "n.", example: "他是这家银行 of the 职员。", category: "ch_listen_1" },
+  { id: 174, hanzi: "华裔", pinyin: "huáyì", meaning: "คนจีนโพ้นทะเล, ลูกหลานชาวจีนที่เกิดในต่างประเทศ", pos: "n.", example: "他是一位出生在美国的华裔。", category: "ch_listen_1" },
+  { id: 175, hanzi: "特别", pinyin: "tèbié", meaning: "เป็นพิเศษ, มาก<br>พิเศษ, แปลกประหลาด", pos: "adv.<br>adj.", example: "今天的天气特别冷。<br>这是一个很特别的礼物。", category: "ch_listen_1" },
+  { id: 176, hanzi: "为了", pinyin: "wèile", meaning: "เพื่อ, เพื่อที่จะ", pos: "prep.", example: "为了学好汉语，他每天都努力练习。", category: "ch_listen_1" },
+  { id: 177, hanzi: "飞龙", pinyin: "Fēilóng", meaning: "เฟยหลง (ชื่อคน)", pos: "pn.", example: "飞龙是我们的班长。", category: "ch_listen_1" },
+  { id: 178, hanzi: "李钟文", pinyin: "Lǐ Zhōngwén", meaning: "หลี่ จงเวิน (ชื่อคน)", pos: "pn.", example: "李钟文学习非常认真。", category: "ch_listen_1" },
+  { id: 179, hanzi: "韩国", pinyin: "Hánguó", meaning: "ประเทศเกาหลี", pos: "pn.", example: "他下个月要去韩国出差。", category: "ch_listen_1" },
+  { id: 180, hanzi: "法国", pinyin: "Fǎguó", meaning: "ประเทศฝรั่งเศส", pos: "pn.", example: "法国有很多著名的历史建筑。", category: "ch_listen_1" },
+  { id: 181, hanzi: "望月智子", pinyin: "Wàngyuè Zhìzǐ", meaning: "โมจิซึกิ โทโมโกะ (ชื่อคนญี่ปุ่น)", pos: "pn.", example: "望月智子是我的好朋友。", category: "ch_listen_1" },
+  { id: 182, hanzi: "爱珍", pinyin: "Àizhēn", meaning: "ไอเจิน (ชื่อคน)", pos: "pn.", example: "爱珍今天请假没有来上课。", category: "ch_listen_1" },
+  { id: 183, hanzi: "美国", pinyin: "Měiguó", meaning: "ประเทศสหรัฐอเมริกา", pos: "pn.", example: "他在美国留学了四年。", category: "ch_listen_1" },
+  { id: 184, hanzi: "日本", pinyin: "Rìběn", meaning: "ประเทศญี่ปุ่น", pos: "pn.", example: "很多人喜欢去日本旅游。", category: "ch_listen_1" },
+  { id: 185, hanzi: "印度尼西亚", pinyin: "Yìndùníxīyà", meaning: "ประเทศอินโดนีเซีย", pos: "pn.", example: "印度尼西亚是东南亚的一个国家。", category: "ch_listen_1" },
+  { id: 186, hanzi: "林福民", pinyin: "Lín Fúmín", meaning: "หลิน ฝูหมิน (ชื่อคน)", pos: "pn.", example: "林福民今天下午要回国了。", category: "ch_listen_1" },
+  { id: 187, hanzi: "饭馆儿", pinyin: "fànguǎnr", meaning: "ร้านอาหาร", pos: "n.", example: "学校附近有一家很便宜的饭馆儿。", category: "ch_listen_2" },
+  { id: 188, hanzi: "好吃", pinyin: "hǎochī", meaning: "อร่อย", pos: "adj.", example: "妈妈做的饭菜特别好吃。", category: "ch_listen_2" },
+  { id: 189, hanzi: "便宜", pinyin: "piányi", meaning: "ราคาถูก, ย่อมเยา", pos: "adj.", example: "这件衬衫挺便宜的。", category: "ch_listen_2" },
+  { id: 190, hanzi: "菜单", pinyin: "càidān", meaning: "เมนูอาหาร", pos: "n.", example: "服务员，请给我一下菜单。", category: "ch_listen_2" },
+  { id: 191, hanzi: "一……就……", pinyin: "yī...jiù...", meaning: "พอ...ก็...", pos: "conj.", example: "我一到家就给你打电话。", category: "ch_listen_2" },
+  { id: 192, hanzi: "头疼", pinyin: "tóuténg", meaning: "ปวดหัว<br>น่าปวดหัว, ลำบากใจ", pos: "v.<br>adj.", example: "我昨天晚上没睡好，现在有点儿头疼。<br>这件繁琐的事情让我很头疼。", category: "ch_listen_2" },
+  { id: 193, hanzi: "点", pinyin: "diǎn", meaning: "สั่ง (อาหาร), ชี้", pos: "v.", example: "我们点几个好吃的菜吧。", category: "ch_listen_2" },
+  { id: 194, hanzi: "拿手", pinyin: "náshǒu", meaning: "ถนัด, เชี่ยวชาญ, ขึ้นชื่อ", pos: "adj.", example: "炒土豆丝是他的拿手菜。", category: "ch_listen_2" },
+  { id: 195, hanzi: "味儿", pinyin: "wèir", meaning: "กลิ่น, รสชาติ", pos: "n.", example: "厨房里有一股甜甜的味儿。", category: "ch_listen_2" },
+  { id: 196, hanzi: "腻", pinyin: "nì", meaning: "เลี่ยน<br>เบื่อ, เอียน", pos: "adj.<br>v.", example: "这个菜太油了，吃多了有点儿腻。<br>这首歌我都听腻了。", category: "ch_listen_2" },
+  { id: 197, hanzi: "挺", pinyin: "tǐng", meaning: "ค่อนข้าง, มากทีเดียว", pos: "adv.", example: "今天的天气挺舒服的。", category: "ch_listen_2" },
+  { id: 198, hanzi: "辣", pinyin: "là", meaning: "เผ็ด", pos: "adj.", example: "这个辣椒非常辣。", category: "ch_listen_2" },
+  { id: 199, hanzi: "越……越……", pinyin: "yuè...yuè...", meaning: "ยิ่ง...ก็ยิ่ง...", pos: "conj.", example: "汉语越学越有意思。", category: "ch_listen_2" },
+  { id: 200, hanzi: "酸", pinyin: "suān", meaning: "เปรี้ยว", pos: "adj.", example: "这个橘子有点儿酸。", category: "ch_listen_2" },
+  { id: 201, hanzi: "甜", pinyin: "tián", meaning: "หวาน", pos: "adj.", example: "西瓜甜甜的，非常好吃。", category: "ch_listen_2" },
+  { id: 202, hanzi: "地道", pinyin: "dìdao", meaning: "แท้, ดั้งเดิม, ท้องถิ่นแท้ๆ", pos: "adj.", example: "他的北京话学得非常地道。", category: "ch_listen_2" },
+  { id: 203, hanzi: "风味", pinyin: "fēngwèi", meaning: "รสชาติท้องถิ่น, กลิ่นอายเฉพาะตัว", pos: "n.", example: "这里的菜很有四川风味。", category: "ch_listen_2" },
+  { id: 204, hanzi: "冰", pinyin: "bīng", meaning: "น้ำแข็ง<br>แช่เย็น, ทำให้เย็น<br>เย็น, เย็นเจี๊ยบ", pos: "n.<br>v.<br>adj.", example: "杯子里放点儿冰吧。<br>把西瓜冰一下再吃。<br>这水太冰了。", category: "ch_listen_2" },
+  { id: 205, hanzi: "果汁", pinyin: "guǒzhī", meaning: "น้ำผลไม้", pos: "n.", example: "我喜欢喝新鲜的果汁。", category: "ch_listen_2" },
+  { id: 206, hanzi: "流利", pinyin: "liúlì", meaning: "คล่องแคล่ว, ไหลลื่น", pos: "adj.", example: "他的汉语说得很流利。", category: "ch_listen_2" },
+  { id: 207, hanzi: "凉快", pinyin: "liángkuai", meaning: "เย็นสบาย", pos: "adj.", example: "秋天的天气很凉快。", category: "ch_listen_2" },
+  { id: 208, hanzi: "环境", pinyin: "huánjìng", meaning: "สิ่งแวดล้อม, สภาพแวดล้อม", pos: "n.", example: "这里的学习环境非常好。", category: "ch_listen_2" },
+  { id: 209, hanzi: "舒适", pinyin: "shūshì", meaning: "สบาย, สะดวกสบาย", pos: "adj.", example: "这个房间非常干净舒适。", category: "ch_listen_2" },
+  { id: 210, hanzi: "附近", pinyin: "fùjìn", meaning: "บริเวณใกล้เคียง, แถวๆ นี้", pos: "n.", example: "学校附近有一家超市。", category: "ch_listen_2" },
+  { id: 211, hanzi: "热情", pinyin: "rèqíng", meaning: "อบอุ่น, มีน้ำใจ, กระตือรือร้น", pos: "adj.", example: "这里的服务员非常热情。", category: "ch_listen_2" },
+  { id: 212, hanzi: "周到", pinyin: "zhōudào", meaning: "รอบคอบ, ทั่วถึง, เอาใจใส่เป็นอย่างดี", pos: "adj.", example: "这家饭馆的服务很周到。", category: "ch_listen_2" },
+  { id: 213, hanzi: "味道", pinyin: "wèidào", meaning: "รสชาติ, กลิ่น", pos: "n.", example: "妈妈做的菜味道非常好。", category: "ch_listen_2" },
+  { id: 214, hanzi: "确实", pinyin: "quèshí", meaning: "จริงๆ, อย่างแท้จริง", pos: "adv.", example: "这里的风景确实很美。", category: "ch_listen_2" },
+  { id: 215, hanzi: "咸", pinyin: "xián", meaning: "เค็ม", pos: "adj.", example: "这个汤有一点儿咸。", category: "ch_listen_2" },
+  { id: 216, hanzi: "水煮牛肉", pinyin: "shuǐzhǔ niúròu", meaning: "เนื้อต้มสไตล์เสฉวน (แกงเนื้อหมาล่า)", pos: "n.", example: "我在饭馆点了一份水煮牛肉。", category: "ch_listen_2" },
+  { id: 217, hanzi: "酸辣土豆丝", pinyin: "suānlà tǔdòusī", meaning: "มันฝรั่งผัดเปรี้ยวเผ็ด", pos: "n.", example: "酸辣土豆丝是一道好吃的川菜。", category: "ch_listen_2" },
+  { id: 218, hanzi: "京酱肉丝", pinyin: "jīngjiàng ròusī", meaning: "หมูผัดซอสหวานปักกิ่ง", pos: "n.", example: "京酱肉丝是这家店 of the 拿手菜。", category: "ch_listen_2" },
+  { id: 219, hanzi: "糖醋里脊", pinyin: "tángcù lǐjǐ", meaning: "หมูชุบแป้งทอดราดซอสเปรี้ยวหวาน", pos: "n.", example: "孩子们都很喜欢吃糖醋里脊。", category: "ch_listen_2" },
+  { id: 220, hanzi: "西红柿鸡蛋汤", pinyin: "xīhóngshì jīdàntāng", meaning: "ซุปมะเขือเทศใส่ไข่", pos: "n.", example: "妈妈今天晚上做了西红柿鸡蛋汤。", category: "ch_listen_2" },
+  { id: 221, hanzi: "随便", pinyin: "suíbiàn", meaning: "ตามสบาย, แล้วแต่, มักง่าย<br>ไม่ว่า...ก็ตาม", pos: "adj.<br>conj.", example: "你想吃什么就随便点。<br>随便你怎么说，我都不在乎。", category: "ch_listen_3" },
+  { id: 222, hanzi: "转", pinyin: "zhuàn", meaning: "เดินเล่น, หมุน, เดินรอบๆ", pos: "v.", example: "吃了晚饭，我们去公园转转。", category: "ch_listen_3" },
+  { id: 223, hanzi: "顺便", pinyin: "shùnbiàn", meaning: "ถือโอกาส...ไปด้วย, แวะ", pos: "adv.", example: "我去超市，顺便给你买瓶水。", category: "ch_listen_3" },
+  { id: 224, hanzi: "熟悉", pinyin: "shúxī", meaning: "คุ้นเคย, รู้จักดี", pos: "v.", example: "我对这儿的生活已经很熟悉了。", category: "ch_listen_3" },
+  { id: 225, hanzi: "校园", pinyin: "xiàoyuán", meaning: "โรงเรียน, วิทยาเขต", pos: "n.", example: "我们的校园里有很多绿树。", category: "ch_listen_3" },
+  { id: 226, hanzi: "原来", pinyin: "yuánlái", meaning: "ที่แท้, แต่เดิม<br>เดิม, เก่า", pos: "adv.<br>adj.", example: "原来是你啊，我没认出来。<br>我们按照原来的计划进行。", category: "ch_listen_3" },
+  { id: 227, hanzi: "怪不得", pinyin: "guàibude", meaning: "มิน่าล่ะ, ถึงว่า", pos: "adv.", example: "今天是周末，怪不得商场里有这么多人。", category: "ch_listen_3" },
+  { id: 228, hanzi: "印象", pinyin: "yìnxiàng", meaning: "ความประทับใจ, ความรู้สึกที่ได้รับ", pos: "n.", example: "中国给我留下了很好的印象。", category: "ch_listen_3" },
+  { id: 229, hanzi: "安静", pinyin: "ānjìng", meaning: "เงียบ, สงบ", pos: "adj.", example: "图书馆里非常安静。", category: "ch_listen_3" },
+  { id: 230, hanzi: "热闹", pinyin: "rènao", meaning: "ครึกครื้น, สนุกสนาน", pos: "adj.", example: "节日里的大街上非常热闹。", category: "ch_listen_3" },
+  { id: 231, hanzi: "操场", pinyin: "cāochǎng", meaning: "สนามกีฬา (ในโรงเรียน), สนามเด็กเล่น", pos: "n.", example: "学生们在操场上踢足球。", category: "ch_listen_3" },
+  { id: 232, hanzi: "部分", pinyin: "bùfen", meaning: "ส่วน, ส่วนหนึ่ง", pos: "n.", example: "这一部分内容非常重要。", category: "ch_listen_3" },
+  { id: 233, hanzi: "头", pinyin: "tóu", meaning: "หัว, ศีรษะ, ปลาย", pos: "n.", example: "理发师正在帮他洗头。", category: "ch_listen_3" },
+  { id: 234, hanzi: "理发店", pinyin: "lǐfàdiàn", meaning: "ร้านตัดผม", pos: "n.", example: "学校旁边有一家理发店。", category: "ch_listen_3" },
+  { id: 235, hanzi: "方便", pinyin: "fāngbiàn", meaning: "สะดวก, สะดวกสบาย", pos: "adj.", example: "住在市中心非常方便。", category: "ch_listen_3" },
+  { id: 236, hanzi: "拐", pinyin: "guǎi", meaning: "เลี้ยว", pos: "v.", example: "走到十字路口向右拐。", category: "ch_listen_3" },
+  { id: 237, hanzi: "健身房", pinyin: "jiànshēnfáng", meaning: "ห้องออกกำลังกาย, ฟิตเนส", pos: "n.", example: "他每天下班后都去健身房锻炼。", category: "ch_listen_3" },
+  { id: 238, hanzi: "体育馆", pinyin: "tǐyùguǎn", meaning: "โรงยิม", pos: "n.", example: "我们在学校的体育馆打羽毛球。", category: "ch_listen_3" },
+  { id: 239, hanzi: "小卖部", pinyin: "xiǎomàibù", meaning: "ร้านขายของชำเล็กๆ, สหกรณ์โรงเรียน", pos: "n.", example: "我去学校的小卖部买支笔。", category: "ch_listen_3" },
+  { id: 240, hanzi: "超市", pinyin: "chāoshì", meaning: "ซูเปอร์มาร์เก็ต", pos: "n.", example: "妈妈去超市买了一些新鲜的水果。", category: "ch_listen_3" },
+  { id: 241, hanzi: "不但……而且……", pinyin: "búdàn...érqiě...", meaning: "ไม่เพียงแต่...แถมยัง...", pos: "conj.", example: "他不但聪明，而且很努力。", category: "ch_listen_3" },
+  { id: 242, hanzi: "简单", pinyin: "jiǎndān", meaning: "ง่าย, ไม่ซับซ้อน", pos: "adj.", example: "这个数学问题非常简单。", category: "ch_listen_3" },
+  { id: 243, hanzi: "换", pinyin: "huàn", meaning: "เปลี่ยน, แลกเปลี่ยน", pos: "v.", example: "我想把这件衣服换个小一点儿的。", category: "ch_listen_4" },
+  { id: 244, hanzi: "习惯", pinyin: "xíguàn", meaning: "นิสัย, ความเคยชิน<br>เคยชิน, คุ้นเคย", pos: "n.<br>v.", example: "养成良好的习惯很重要。<br>我已经习惯了早起。", category: "ch_listen_4" },
+  { id: 245, hanzi: "完全", pinyin: "wánquán", meaning: "ทั้งหมด, โดยสิ้นเชิง, อย่างสมบูรณ์", pos: "adv.", example: "我完全同意你的想法。", category: "ch_listen_4" },
+  { id: 246, hanzi: "结束", pinyin: "jiéshù", meaning: "สิ้นสุด, จบ", pos: "v.", example: "今天的会议已经结束了。", category: "ch_listen_4" },
+  { id: 247, hanzi: "偏偏", pinyin: "piānpiān", meaning: "แต่กลับ... (ขัดกับความต้องการหรือความจริง)", pos: "adv.", example: "今天我很忙，他偏偏这时候来找我。", category: "ch_listen_4" },
+  { id: 248, hanzi: "同意", pinyin: "tóngyì", meaning: "เห็นด้วย, ยอมรับ", pos: "v.", example: "爸爸同意了我去中国旅游ของ计划。", category: "ch_listen_4" },
+  { id: 249, hanzi: "既", pinyin: "jì", meaning: "ทั้ง... (มักใช้คู่กับ 又 หรือ 也)", pos: "conj.", example: "这个西瓜既甜又多汁。", category: "ch_listen_4" },
+  { id: 250, hanzi: "精神", pinyin: "jīngshen", meaning: "จิตใจ, เจตนารมณ์<br>กระปรี้กระเปร่า, มีชีวิตชีวา", pos: "n.<br>adj.", example: "我们要学习这种奉献精神。<br>他今天看起来很有精神。", category: "ch_listen_4" },
+  { id: 251, hanzi: "临", pinyin: "lín", meaning: "เผชิญหน้า, จวนจะ, ใกล้จะ", pos: "v.", example: "临出发前，妈妈又叮嘱了我几句。", category: "ch_listen_4" },
+  { id: 252, hanzi: "正", pinyin: "zhèng", meaning: "กำลัง...พอดี<br>ตรง, เที่ยงตรง", pos: "adv.<br>adj.", example: "老师进来的时候，我们正聊着天呢。<br>这个帽子的位置戴得不正。", category: "ch_listen_4" },
+  { id: 253, hanzi: "对", pinyin: "duì", meaning: "หันหน้าเข้าหา, มุ่งต่อ, ตอบโต้<br>ถูกต้อง, ใช่<br>ต่อ, กับ", pos: "v.<br>adj.<br>prep.", example: "他的房间正对着马路。<br>你的回答完全正确。<br>多喝水对身体很好。", category: "ch_listen_4" },
+  { id: 254, hanzi: "吵", pinyin: "chǎo", meaning: "ทะเลาะ, ส่งเสียงดังรบกวน<br>หนวกหู, เสียงดัง", pos: "v.<br>adj.", example: "邻居们又在吵架了。<br>外面太吵了，我没听到你说什么。", category: "ch_listen_4" },
+  { id: 255, hanzi: "着", pinyin: "zháo", meaning: "สำเร็จ, โดน, ถึง (แสดงผลลัพธ์ของการกระทำ มักใช้ตามหลังคำกริยา)", pos: "v.", example: "他昨天晚上十二点才睡着。", category: "ch_listen_4" },
+  { id: 256, hanzi: "醒", pinyin: "xǐng", meaning: "ตื่น, ตื่นนอน, ได้สติ", pos: "v.", example: "我今天早上五点就醒了。", category: "ch_listen_4" },
+  { id: 257, hanzi: "再说", pinyin: "zàishuō", meaning: "ค่อยว่ากันทีหลัง, ค่อยพูดกันใหม่<br>อีกอย่าง, ยิ่งกว่านั้น", pos: "v.<br>conj.", example: "这件事我们明天再说吧。<br>现在太晚了，再说我也累了。", category: "ch_listen_4" },
+  { id: 258, hanzi: "空调", pinyin: "kōngtiáo", meaning: "เครื่องปรับอากาศ, แอร์", pos: "n.", example: "天气太热了，请打开空调。", category: "ch_listen_4" },
+  { id: 259, hanzi: "一直", pinyin: "yìzhí", meaning: "มาโดยตลอด, รวดเดียว, ตรงไป", pos: "adv.", example: "我一直在这家公司工作。", category: "ch_listen_4" }
+        ];
 
         let words = [...defaultWords];
         let currentMode = 'flashcards'; // flashcards | dictation
@@ -317,34 +572,6 @@
 
         // Navigation History Stack
         let screenHistory = ['screen-home'];
-
-        // ฟังก์ชันดึงข้อมูลจาก Google Sheet อัตโนมัติ
-        async function loadWordsFromSheet() {
-            const tag = document.getElementById('sheet-status');
-            try {
-                const response = await fetch(SHEET_API_URL);
-                const data = await response.json();
-                
-                if (data && data.length > 0) {
-                    words = data.map((item, idx) => ({
-                        id: idx + 1,
-                        hanzi: item.w || item.hanzi || item.word || '',
-                        pinyin: item.p || item.pinyin || '',
-                        meaning: item.m || item.meaning || '',
-                        pos: item.pos || 'vocab',
-                        example: item.e || item.example || '',
-                        category: String(item.category || item.lesson || item.cat || '').trim()
-                    }));
-                    
-                    tag.innerText = `✓ พร้อมใช้ (${words.length} คำ)`;
-                    tag.className = "text-[10px] bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full font-bold";
-                }
-            } catch (err) {
-                console.error(" Sheet Error:", err);
-                tag.innerText = "⚠️ ใช้ข้อมูลสำรอง";
-                tag.className = "text-[10px] bg-rose-100 text-rose-700 px-2.5 py-1 rounded-full font-bold";
-            }
-        }
 
         function navigateTo(screenId, mode = null) {
             if (mode) currentMode = mode;
@@ -407,11 +634,8 @@
         }
 
         function startSessionWithCat(cat) {
-            let filtered = words.filter(w => String(w.category).trim() === String(cat).trim());
-            if (filtered.length === 0) {
-                alert(`ยังไม่มีข้อมูลคำศัพท์ในหมวด "${cat}" ใน Sheet ครับ`);
-                return;
-            }
+            let filtered = words.filter(w => w.category === cat);
+            if (filtered.length === 0) filtered = [...words];
             if (currentMode === 'dictation') {
                 const limit = parseInt(document.getElementById('word-amount-slider').value);
                 filtered = filtered.slice(0, limit);
@@ -565,9 +789,6 @@
             screenHistory = ['screen-home'];
             navigateTo('screen-setup', currentMode);
         }
-
-        // เริ่มดึงข้อมูลจาก Google Sheet ทันทีเมื่อเปิดเว็บ
-        loadWordsFromSheet();
     </script>
 </body>
 </html>
